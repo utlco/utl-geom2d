@@ -1,0 +1,203 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "utl-geom2d"
+version = "0.2"
+authors = [{name = "Claude Zervas", email = "claude@utlco.com"}]
+description = "Simple 2D geometry package"
+readme = "README.rst"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+keywords = ["2d", "geometry", "computational geometry", "bezier"]
+dependencies = ["typing_extensions"]
+
+[project.optional-dependencies]
+test = ["pytest", "numpy"]
+dev = [
+    "pytest",
+    "black",
+    "ruff",
+    "pylint",
+    "mypy",
+    "numpy",
+    "sphinx",
+    "sphinx-autobuild",
+    "python-docs-theme",
+]
+
+[project.urls]
+#repository = "https://github.com/utlco/utl-geom2d"
+
+[project.scripts]
+
+[tool.pytest.ini_options]
+minversion="6.0"
+addopts = "-ra -q -s"
+testpaths = ["test",]
+
+[tool.black]
+line-length = 80
+target-version = ["py39"]
+skip-string-normalization = true
+preview = true
+
+[tool.pylint.MAIN]
+extension-pkg-allow-list = ["lxml.etree"]
+
+[tool.pylint."MESSAGES CONTROL"]
+ignore = "contrib"
+disable = [
+    "too-many-locals",
+    "too-many-lines",
+    "missing-function-docstring",
+    "consider-using-enumerate",
+    "too-few-public-methods",
+    "too-many-public-methods",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "too-many-branches",
+    "too-many-boolean-expressions",
+    "fixme"
+]
+
+[tool.pylint.VARIABLES]
+variable-rgx = "^_?[a-z][a-z0-9_]*$"
+attr-rgx = "^_{0,2}[a-z][a-z0-9_]*$"
+argument-rgx = "^_?[a-z][a-z0-9_]*$"
+method-rgx = "(?x)^(?:(?P<exempt>_[a-z0-9_]+__|(test|assert)_*[A-Z0-9][a-zA-Z0-9_]*|next)|(?P<snake_case>_{0,2}[a-z][a-z0-9_]*))$"
+
+[tool.ruff]
+preview = true
+target-version = "py39"
+select = [
+    "A",
+    "B",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "Q",
+    "W",
+    "N",
+    # "S",
+    "ANN",
+    "AIR",
+    "ARG",
+    "BLE",
+    # "FBT",
+    "C4",
+    # "C90",
+    "COM",
+    "DTZ",
+    # "EM",
+    # "ERA",
+    "FA",
+    # "FIX",
+    "FLY",
+    "FURB",
+    "ICN",
+    "INP",
+    "INT",
+    "ISC",
+    # "ERA",
+    "PD",
+    "PERF",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "PYI",
+    "NPY",
+    "RET",
+    "RSE",
+    "RUF",
+    "SIM",
+    "SLF",
+    "SLOT",
+    "T20",
+    # "TD",
+    "TCH",
+    "TID",
+    "TRY",
+    "UP",
+    "YTT",
+]
+extend-ignore = [
+    "ANN101", # self annotated... good grief
+    #"UP006",
+    #"UP007", # use X | Y type annot
+    "D107", # Missing docstring in `__init__`
+    "E203", # no ws before ':' (slice)
+    #"D407",
+    "Q000", # Double quotes preferred
+    "PLR2004", # Magic value used
+    "COM812", # trailing comma missing
+    "N806", # Upper case variable name
+    "PLR0913", # Too many arguments to function call
+    "PLR0917", # Too many positional arguments
+    "PLR0904", # Too many public methods
+    "PLR6201", # Use a `set` literal when testing for membership
+    "PLR6301", # Method could be function
+    "PLR0914", # Too many local variables
+    #"PTH123", # Use Path.open
+    "TRY003", # long msg outside exc cls
+    "TRY400", # Use `logging.exception` instead of `logging.error`
+]
+
+extend-exclude = [
+    "venv",
+    "contrib",
+    "tmp",
+    "saved",
+    "unused",
+    "docs",
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["D104", "F401"]
+
+[tool.mypy]
+mypy_path = "./src"
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+check_untyped_defs = true
+exclude = [
+    "contrib",
+    "tmp",
+    "saved",
+    "unused",
+    "build",
+    "docs",
+]
+
+[[tool.mypy.overrides]]
+module = "contrib.clipper"
+follow_imports = "skip"
+
+[tool.typos]
+
+[tool.typos.files]
+extend-exclude = [
+    "venv",
+    "__pycache__",
+    "saved",
+    "build",
+    "unused",
+    "test",
+    "contrib",
+    "tmp",
+    "out"
+]
+

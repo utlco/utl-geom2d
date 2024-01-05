@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Simple script for actions that should be performed before a git commit/push.
+# No need to install pre-commit, poetry, etc.
+#
+# Configuration is in pyproject.toml
+#
+# To install/update typos see: https://github.com/crate-ci/typos
+#
+#     cargo install typos-cli
+#
+TARGET="${1:-src}"
+
+Reset='\033[0m'
+UCyan='\033[4;36m'
+
+for cmd in "black -q" ruff "mypy --no-error-summary" "pylint -E"; do
+  printf "${UCyan}${cmd%% *}${Reset}\n"
+  $cmd $TARGET
+done
+
+# Build documentation to make sure it all works
+#docutils README.rst > README.html
+
+# Run typos-cli if it's installed
+if [[ $(command -v typos) ]]; then
+  typos
+fi
