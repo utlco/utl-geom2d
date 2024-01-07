@@ -11,8 +11,8 @@ venv*
 __pycache__
 *.egg-info
 build/
-docs/_build
-docs/generated
+docsrc/_build
+docsrc/generated
 dist/
 README.html
 **/*.swp

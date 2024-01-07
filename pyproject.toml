@@ -27,11 +27,10 @@ dev = [
     "numpy",
     "sphinx",
     "sphinx-autobuild",
-    "python-docs-theme",
 ]
 
 [project.urls]
-#repository = "https://github.com/utlco/utl-geom2d"
+repository = "https://github.com/utlco/utl-geom2d"
 
 [project.scripts]
 
