@@ -1,0 +1,5 @@
+﻿geom2d.point
+============
+
+.. automodule:: geom2d.point
+   :members:

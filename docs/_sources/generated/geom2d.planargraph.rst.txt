@@ -1,0 +1,5 @@
+﻿geom2d.planargraph
+==================
+
+.. automodule:: geom2d.planargraph
+   :members:
