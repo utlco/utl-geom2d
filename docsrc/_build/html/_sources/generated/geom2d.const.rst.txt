@@ -1,5 +1,0 @@
-﻿geom2d.const
-============
-
-.. automodule:: geom2d.const
-   :members:

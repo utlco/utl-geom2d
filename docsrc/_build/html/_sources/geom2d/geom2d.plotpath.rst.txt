@@ -1,5 +1,0 @@
-﻿geom2d.plotpath
-==============
-
-.. automodule:: geom2d.plotpath
-   :members:

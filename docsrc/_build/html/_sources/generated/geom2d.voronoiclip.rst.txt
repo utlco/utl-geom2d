@@ -1,5 +1,0 @@
-﻿geom2d.voronoiclip
-==================
-
-.. automodule:: geom2d.voronoiclip
-   :members:

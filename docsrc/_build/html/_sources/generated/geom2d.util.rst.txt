@@ -1,5 +1,0 @@
-﻿geom2d.util
-===========
-
-.. automodule:: geom2d.util
-   :members:
