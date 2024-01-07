@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>geom2d.const &mdash; utl-geom2d  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="geom2d.debug" href="geom2d.debug.html" />
+    <link rel="prev" title="geom2d.box" href="geom2d.box.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            utl-geom2d
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">geom2d</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="geom2d.arc.html">geom2d.arc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.bezier.html">geom2d.bezier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.box.html">geom2d.box</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">geom2d.const</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.EPSILON"><code class="docutils literal notranslate"><span class="pre">EPSILON</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.EPSILON2"><code class="docutils literal notranslate"><span class="pre">EPSILON2</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.EPSILON_MINUS"><code class="docutils literal notranslate"><span class="pre">EPSILON_MINUS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.EPSILON_PRECISION"><code class="docutils literal notranslate"><span class="pre">EPSILON_PRECISION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.MAX_XY"><code class="docutils literal notranslate"><span class="pre">MAX_XY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.REPSILON"><code class="docutils literal notranslate"><span class="pre">REPSILON</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.TAU"><code class="docutils literal notranslate"><span class="pre">TAU</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.float_eq"><code class="docutils literal notranslate"><span class="pre">float_eq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.float_eq1"><code class="docutils literal notranslate"><span class="pre">float_eq1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.float_eq2"><code class="docutils literal notranslate"><span class="pre">float_eq2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.float_eq3"><code class="docutils literal notranslate"><span class="pre">float_eq3()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.float_round"><code class="docutils literal notranslate"><span class="pre">float_round()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.is_zero"><code class="docutils literal notranslate"><span class="pre">is_zero()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.const.set_epsilon"><code class="docutils literal notranslate"><span class="pre">set_epsilon()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.debug.html">geom2d.debug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.ellipse.html">geom2d.ellipse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.fillet.html">geom2d.fillet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.line.html">geom2d.line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.planargraph.html">geom2d.planargraph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.plotpath.html">geom2d.plotpath</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.point.html">geom2d.point</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.polygon.html">geom2d.polygon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.polyline.html">geom2d.polyline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.transform2d.html">geom2d.transform2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.util.html">geom2d.util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.voronoiclip.html">geom2d.voronoiclip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.voronoi.html">geom2d.voronoi</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">utl-geom2d</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">geom2d</a></li>
+      <li class="breadcrumb-item active">geom2d.const</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/geom2d.const.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-geom2d.const">
+<span id="geom2d-const"></span><h1>geom2d.const<a class="headerlink" href="#module-geom2d.const" title="Link to this heading"></a></h1>
+<p>Floating point comparison functions and miscellaneous constants.</p>
+<dl class="simple">
+<dt>For a discussion about floating point comparison see:</dt><dd><p><a class="reference external" href="http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/</a></p>
+</dd>
+</dl>
+<p>The default value of <a class="reference internal" href="#geom2d.const.EPSILON" title="geom2d.const.EPSILON"><code class="xref py py-const docutils literal notranslate"><span class="pre">EPSILON</span></code></a> should be fine for most applications
+but if it is to be changed it should be set once (and only once)
+with a call to <a class="reference internal" href="#geom2d.const.set_epsilon" title="geom2d.const.set_epsilon"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_epsilon()</span></code></a> before using the <code class="xref py py-mod docutils literal notranslate"><span class="pre">geom2d</span></code> API.</p>
+<p><a class="reference internal" href="#geom2d.const.EPSILON" title="geom2d.const.EPSILON"><code class="xref py py-const docutils literal notranslate"><span class="pre">EPSILON</span></code></a> (and related) should not be referenced by module globals
+at import time due to this possible mutability.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.EPSILON">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">EPSILON</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-09</span></em><a class="headerlink" href="#geom2d.const.EPSILON" title="Link to this definition"></a></dt>
+<dd><p>Tolerance value used for floating point comparisons.</p>
+<p>The maximum numeric distance between two floating point numbers for
+them to be considered equal.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.EPSILON2">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">EPSILON2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-18</span></em><a class="headerlink" href="#geom2d.const.EPSILON2" title="Link to this definition"></a></dt>
+<dd><p>Handy for comparing distance**2 to avoid sqrt().</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.EPSILON_MINUS">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">EPSILON_MINUS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9.999997779553951e-10</span></em><a class="headerlink" href="#geom2d.const.EPSILON_MINUS" title="Link to this definition"></a></dt>
+<dd><p>Tolerence/epsilon minus a tiny bit (system float epsilon).</p>
+<p>Useful for testing float comparisons… But possibly not much else.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.EPSILON_PRECISION">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">EPSILON_PRECISION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></em><a class="headerlink" href="#geom2d.const.EPSILON_PRECISION" title="Link to this definition"></a></dt>
+<dd><p>Number of significant digits after decimal point.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.MAX_XY">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">MAX_XY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9223372036.854776</span></em><a class="headerlink" href="#geom2d.const.MAX_XY" title="Link to this definition"></a></dt>
+<dd><p>Maximum reasonable floating point coordinate value.</p>
+<p>Numbers in this range will still work with coordinate hashing,
+float comparisons, and integer conversions.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.REPSILON">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">REPSILON</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000000</span></em><a class="headerlink" href="#geom2d.const.REPSILON" title="Link to this definition"></a></dt>
+<dd><p>Reciprocal epsilon for int coordinate conversions, etc.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="geom2d.const.TAU">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">TAU</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.283185307179586</span></em><a class="headerlink" href="#geom2d.const.TAU" title="Link to this definition"></a></dt>
+<dd><p>Commonly used constant 2 * <em>pi</em>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.float_eq">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">float_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.const.float_eq" title="Link to this definition"></a></dt>
+<dd><p>Compare floats.</p>
+<p>This is slightly faster than float_eq1 and does not scale
+tolerance for small numbers (&lt; 1.0).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.float_eq1">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">float_eq1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.const.float_eq1" title="Link to this definition"></a></dt>
+<dd><p>Compare floats.</p>
+<p>The two float are considered equal if the difference between them is
+less than a normalized tolerance value.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.float_eq2">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">float_eq2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.const.float_eq2" title="Link to this definition"></a></dt>
+<dd><p>Compare floats.</p>
+<p>This simpler and faster version works ok for small/reasonable values.
+It fails for larger numbers where floating point gaps are significant.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.float_eq3">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">float_eq3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.const.float_eq3" title="Link to this definition"></a></dt>
+<dd><p>Compare floats.</p>
+<p>This is slightly faster than float_eq1 and does not scale
+tolerance for small numbers (&lt; 1.0).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.float_round">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">float_round</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#geom2d.const.float_round" title="Link to this definition"></a></dt>
+<dd><p>Round the value to a rounding precision corresponding to EPSILON.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.is_zero">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">is_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.const.is_zero" title="Link to this definition"></a></dt>
+<dd><p>Determine if the float value is essentially zero.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.const.set_epsilon">
+<span class="sig-prename descclassname"><span class="pre">geom2d.const.</span></span><span class="sig-name descname"><span class="pre">set_epsilon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.const.set_epsilon" title="Link to this definition"></a></dt>
+<dd><p>Set the nominal tolerance for float comparisons.</p>
+<p>This updates the global constants:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#geom2d.const.EPSILON" title="geom2d.const.EPSILON"><code class="xref py py-const docutils literal notranslate"><span class="pre">EPSILON</span></code></a></p></li>
+<li><p><a class="reference internal" href="#geom2d.const.EPSILON2" title="geom2d.const.EPSILON2"><code class="xref py py-const docutils literal notranslate"><span class="pre">EPSILON2</span></code></a></p></li>
+<li><p><a class="reference internal" href="#geom2d.const.EPSILON_PRECISION" title="geom2d.const.EPSILON_PRECISION"><code class="xref py py-const docutils literal notranslate"><span class="pre">EPSILON_PRECISION</span></code></a></p></li>
+<li><p><a class="reference internal" href="#geom2d.const.REPSILON" title="geom2d.const.REPSILON"><code class="xref py py-const docutils literal notranslate"><span class="pre">REPSILON</span></code></a></p></li>
+<li><p><a class="reference internal" href="#geom2d.const.MAX_XY" title="geom2d.const.MAX_XY"><code class="xref py py-const docutils literal notranslate"><span class="pre">MAX_XY</span></code></a></p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="geom2d.box.html" class="btn btn-neutral float-left" title="geom2d.box" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="geom2d.debug.html" class="btn btn-neutral float-right" title="geom2d.debug" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Claude Zervas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

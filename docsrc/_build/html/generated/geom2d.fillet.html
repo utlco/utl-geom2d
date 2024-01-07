@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>geom2d.fillet &mdash; utl-geom2d  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="geom2d.line" href="geom2d.line.html" />
+    <link rel="prev" title="geom2d.ellipse" href="geom2d.ellipse.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            utl-geom2d
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">geom2d</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="geom2d.arc.html">geom2d.arc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.bezier.html">geom2d.bezier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.box.html">geom2d.box</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.const.html">geom2d.const</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.debug.html">geom2d.debug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.ellipse.html">geom2d.ellipse</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">geom2d.fillet</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.connect_fillet"><code class="docutils literal notranslate"><span class="pre">connect_fillet()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.create_fillet_arc"><code class="docutils literal notranslate"><span class="pre">create_fillet_arc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.fillet_arc_arc"><code class="docutils literal notranslate"><span class="pre">fillet_arc_arc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.fillet_line_arc"><code class="docutils literal notranslate"><span class="pre">fillet_line_arc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.fillet_line_line"><code class="docutils literal notranslate"><span class="pre">fillet_line_line()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.fillet_path"><code class="docutils literal notranslate"><span class="pre">fillet_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.fillet_polygon"><code class="docutils literal notranslate"><span class="pre">fillet_polygon()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geom2d.fillet.insert_fillet"><code class="docutils literal notranslate"><span class="pre">insert_fillet()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.line.html">geom2d.line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.planargraph.html">geom2d.planargraph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.plotpath.html">geom2d.plotpath</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.point.html">geom2d.point</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.polygon.html">geom2d.polygon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.polyline.html">geom2d.polyline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.transform2d.html">geom2d.transform2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.util.html">geom2d.util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.voronoiclip.html">geom2d.voronoiclip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom2d.voronoi.html">geom2d.voronoi</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">utl-geom2d</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">geom2d</a></li>
+      <li class="breadcrumb-item active">geom2d.fillet</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/geom2d.fillet.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-geom2d.fillet">
+<span id="geom2d-fillet"></span><h1>geom2d.fillet<a class="headerlink" href="#module-geom2d.fillet" title="Link to this heading"></a></h1>
+<p>Connect Line/Arc segments with a fillet arc.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.connect_fillet">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">connect_fillet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">farc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.fillet.connect_fillet" title="Link to this definition"></a></dt>
+<dd><p>Connect two segments with a fillet arc.</p>
+<p>This will adjust the lengths of the segments to
+accommodate the fillet.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.create_fillet_arc">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">create_fillet_arc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.fillet.create_fillet_arc" title="Link to this definition"></a></dt>
+<dd><p>Try to create a fillet between two segments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seg1</strong> – First segment, an Arc or a Line.</p></li>
+<li><p><strong>seg2</strong> – Second segment, an Arc or a Line.</p></li>
+<li><p><strong>radius</strong> – Fillet radius.</p></li>
+<li><p><strong>adjust_radius</strong> – Shrink radius to fit segments if they
+are too short to accommodate the specified radius.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A fillet arc or None if the segments cannot be connected
+with a fillet arc (either they are too small, already G1
+continuous, or are somehow degenerate.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.fillet_arc_arc">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">fillet_arc_arc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arc1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">arc2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillet_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.fillet.fillet_arc_arc" title="Link to this definition"></a></dt>
+<dd><p>Create a fillet arc between two connected arcs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arc1</strong> – First arc.</p></li>
+<li><p><strong>arc2</strong> – Second arc.</p></li>
+<li><p><strong>fillet_radius</strong> – The radius of the fillet.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An Arc, or None if the fillet radius is too big to fit or
+if the two segments are not connected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.fillet_line_arc">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">fillet_line_arc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">arc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillet_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.fillet.fillet_line_arc" title="Link to this definition"></a></dt>
+<dd><p>Create a fillet arc between a line segment and a connected arc.</p>
+<p>The fillet arc end point order will match the line-arc order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line</strong> – A Line.</p></li>
+<li><p><strong>arc</strong> – An Arc.</p></li>
+<li><p><strong>fillet_radius</strong> – The radius of the fillet.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An Arc,
+or None if the fillet radius is too big to fit or
+if the two segments are not connected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.fillet_line_line">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">fillet_line_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">line2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillet_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.fillet.fillet_line_line" title="Link to this definition"></a></dt>
+<dd><p>Create a fillet arc between two line segments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line1</strong> – A Line.</p></li>
+<li><p><strong>line2</strong> – A Line connected to line1.</p></li>
+<li><p><strong>fillet_radius</strong> – The radius of the fillet.</p></li>
+<li><p><strong>adjust_radius</strong> – Shrink radius to fit segments if they
+are too short to accommodate the specified radius.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An Arc, or None if the fillet radius is too big to fit or
+if the two segments are not connected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.fillet_path">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">fillet_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillet_close</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.fillet.fillet_path" title="Link to this definition"></a></dt>
+<dd><p>Fillet a path of connected Line and Arc segments.</p>
+<p>Attempt to insert a circular arc of the specified radius
+to connect adjacent path segments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – A list of connected Line or Arc segments.</p></li>
+<li><p><strong>radius</strong> – The radius of the fillet arc.</p></li>
+<li><p><strong>fillet_close</strong> – If True and the path is closed then
+add a terminating fillet.</p></li>
+<li><p><strong>adjust_radius</strong> – Shrink radius to fit segments if they
+are too short to accommodate the specified radius.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new path with fillet arcs. If no fillets are created then
+the original path will be returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.fillet_polygon">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">fillet_polygon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillet_close</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TFilletPath</span></span></span><a class="headerlink" href="#geom2d.fillet.fillet_polygon" title="Link to this definition"></a></dt>
+<dd><p>Fillet polygon edges.</p>
+<p>Attempt to insert a circular arc of the specified radius
+connecting adjacent polygon segments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poly</strong> – A list of polygon vertices.</p></li>
+<li><p><strong>radius</strong> – The radius of the fillet arc.</p></li>
+<li><p><strong>fillet_close</strong> – If True and the path is closed then
+add a terminating fillet. Default is True.</p></li>
+<li><p><strong>adjust_radius</strong> – Shrink radius to fit segments if they
+are too short to accommodate the specified radius.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new path with fillet arcs as a list of Line and Arc segments.
+If no fillets are created then the original path will be returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.fillet.insert_fillet">
+<span class="sig-prename descclassname"><span class="pre">geom2d.fillet.</span></span><span class="sig-name descname"><span class="pre">insert_fillet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="geom2d.arc.html#geom2d.arc.Arc" title="geom2d.arc.Arc"><span class="pre">Arc</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.fillet.insert_fillet" title="Link to this definition"></a></dt>
+<dd><p>Try to create a fillet between two segments.</p>
+<p>Any GCode rendering hints attached to the segments will
+be preserved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seg1</strong> – First segment, an Arc or a Line.</p></li>
+<li><p><strong>seg2</strong> – Second segment, an Arc or a Line.</p></li>
+<li><p><strong>radius</strong> – Fillet radius.</p></li>
+<li><p><strong>adjust_radius</strong> – Shrink radius to fit segments if they
+are too short to accommodate the specified radius.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(seg1, fillet_arc, seg2)
+Returns an empty tuple if the segments cannot be connected
+with a fillet arc (either they are too small
+or somehow degenerate.)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the adjusted segments and fillet arc</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="geom2d.ellipse.html" class="btn btn-neutral float-left" title="geom2d.ellipse" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="geom2d.line.html" class="btn btn-neutral float-right" title="geom2d.line" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Claude Zervas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

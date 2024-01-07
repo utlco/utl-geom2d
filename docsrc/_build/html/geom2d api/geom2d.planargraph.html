@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>geom2d.planargraph &#8212; utl-geom2d  documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydoctheme.css?v=aa5eeaf2" />
+    <link id="pygments_dark_css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css" href="../_static/pygments_dark.css?v=b20cc3f5" />
+    
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="geom2d.plotpath" href="geom2d.plotpath.html" />
+    <link rel="prev" title="geom2d.line" href="geom2d.line.html" /><link rel="stylesheet" href="../_static/pydoctheme_dark.css" media="(prefers-color-scheme: dark)" id="pydoctheme_dark_css">
+    <link rel="shortcut icon" type="image/png" href="../_static/py.svg" />
+            <script type="text/javascript" src="../_static/copybutton.js"></script>
+            <script type="text/javascript" src="../_static/menu.js"></script>
+            <script type="text/javascript" src="../_static/search-focus.js"></script>
+            <script type="text/javascript" src="../_static/themetoggle.js"></script> 
+  </head>
+<body>
+<div class="mobile-nav">
+    <input type="checkbox" id="menuToggler" class="toggler__input" aria-controls="navigation"
+           aria-pressed="false" aria-expanded="false" role="button" aria-label="Menu" />
+    <nav class="nav-content" role="navigation">
+        <label for="menuToggler" class="toggler__label">
+            <span></span>
+        </label>
+        <span class="nav-items-wrapper">
+            <a href="https://www.python.org/" class="nav-logo">
+                <img src="../_static/py.svg" alt="Logo"/>
+            </a>
+            <span class="version_switcher_placeholder"></span>
+            <form role="search" class="search" action="../search.html" method="get">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" class="search-icon">
+                    <path fill-rule="nonzero" fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                </svg>
+                <input placeholder="Quick search" aria-label="Quick search" type="search" name="q" />
+                <input type="submit" value="Go"/>
+            </form>
+        </span>
+    </nav>
+    <div class="menu-wrapper">
+        <nav class="menu" role="navigation" aria-label="main navigation">
+            <div class="language_switcher_placeholder"></div>
+            
+<label class="theme-selector-label">
+    Theme
+    <select class="theme-selector" oninput="activateTheme(this.value)">
+        <option value="auto" selected>Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label>
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">geom2d.planargraph</a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph"><code class="docutils literal notranslate"><span class="pre">Graph</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.add_edge"><code class="docutils literal notranslate"><span class="pre">Graph.add_edge()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.add_poly"><code class="docutils literal notranslate"><span class="pre">Graph.add_poly()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.boundary_polygon"><code class="docutils literal notranslate"><span class="pre">Graph.boundary_polygon()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.bounding_box"><code class="docutils literal notranslate"><span class="pre">Graph.bounding_box()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.cull_open_edges"><code class="docutils literal notranslate"><span class="pre">Graph.cull_open_edges()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.edges"><code class="docutils literal notranslate"><span class="pre">Graph.edges</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.get_face_polygons"><code class="docutils literal notranslate"><span class="pre">Graph.get_face_polygons()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.nodemap"><code class="docutils literal notranslate"><span class="pre">Graph.nodemap</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.order"><code class="docutils literal notranslate"><span class="pre">Graph.order()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.peel_boundary_polygon"><code class="docutils literal notranslate"><span class="pre">Graph.peel_boundary_polygon()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.remove_edge"><code class="docutils literal notranslate"><span class="pre">Graph.remove_edge()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.size"><code class="docutils literal notranslate"><span class="pre">Graph.size()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.vertices"><code class="docutils literal notranslate"><span class="pre">Graph.vertices()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode"><code class="docutils literal notranslate"><span class="pre">GraphNode</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.add_edge_node"><code class="docutils literal notranslate"><span class="pre">GraphNode.add_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.ccw_edge_node"><code class="docutils literal notranslate"><span class="pre">GraphNode.ccw_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.degree"><code class="docutils literal notranslate"><span class="pre">GraphNode.degree()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.remove_edge_node"><code class="docutils literal notranslate"><span class="pre">GraphNode.remove_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.sort_edges"><code class="docutils literal notranslate"><span class="pre">GraphNode.sort_edges()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphPathBuilder"><code class="docutils literal notranslate"><span class="pre">GraphPathBuilder</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphPathBuilder.build_longest_paths"><code class="docutils literal notranslate"><span class="pre">GraphPathBuilder.build_longest_paths()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphPathBuilder.build_paths"><code class="docutils literal notranslate"><span class="pre">GraphPathBuilder.build_paths()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdge"><code class="docutils literal notranslate"><span class="pre">MarkedEdge</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdge.visited_left"><code class="docutils literal notranslate"><span class="pre">MarkedEdge.visited_left()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap"><code class="docutils literal notranslate"><span class="pre">MarkedEdgeMap</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap.lookup"><code class="docutils literal notranslate"><span class="pre">MarkedEdgeMap.lookup()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap.mark_edge"><code class="docutils literal notranslate"><span class="pre">MarkedEdgeMap.mark_edge()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.PathStrategy"><code class="docutils literal notranslate"><span class="pre">PathStrategy</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.find_free_edge_node"><code class="docutils literal notranslate"><span class="pre">find_free_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.make_face"><code class="docutils literal notranslate"><span class="pre">make_face()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.make_face_polygons"><code class="docutils literal notranslate"><span class="pre">make_face_polygons()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="geom2d.line.html"
+                          title="previous chapter">geom2d.line</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="geom2d.plotpath.html"
+                          title="next chapter">geom2d.plotpath</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/geom2d api/geom2d.planargraph.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </nav>
+    </div>
+</div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="geom2d.plotpath.html" title="geom2d.plotpath"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="geom2d.line.html" title="geom2d.line"
+             accesskey="P">previous</a> |</li>
+          <li><img src="../_static/py.svg" alt="python logo" style="vertical-align: middle; margin-top: -1px"/></li>
+          <li><a href="https://www.python.org/">Python</a> &#187;</li>
+          <li class="switchers">
+            <div class="language_switcher_placeholder"></div>
+            <div class="version_switcher_placeholder"></div>
+          </li>
+          <li>
+              
+              <a href="../index.html">utl-geom2d  documentation</a> &#187;
+              
+          </li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">geom2d</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">geom2d.planargraph</a></li>
+                <li class="right">
+                    
+
+    <div class="inline-search" role="search">
+        <form class="inline-search" action="../search.html" method="get">
+          <input placeholder="Quick search" aria-label="Quick search" type="search" name="q" id="search-box" />
+          <input type="submit" value="Go" />
+        </form>
+    </div>
+                     |
+                </li>
+            <li class="right">
+<label class="theme-selector-label">
+    Theme
+    <select class="theme-selector" oninput="activateTheme(this.value)">
+        <option value="auto" selected>Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label> |</li>
+            
+      </ul>
+    </div>    
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="geom2d-planargraph">
+<h1>geom2d.planargraph<a class="headerlink" href="#geom2d-planargraph" title="Link to this heading">¶</a></h1>
+<p id="module-geom2d.planargraph">Simple planar graph data structure.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">Graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">TLine</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geom2d.planargraph.Graph" title="Link to this definition">¶</a></dt>
+<dd><p>Simple connected undirected 2D planar graph.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.add_edge">
+<span class="sig-name descname"><span class="pre">add_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.add_edge" title="Link to this definition">¶</a></dt>
+<dd><p>Add an edge to this graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>edge</strong> – A line segment that defines a graph edge.
+An edge being a 2-tuple of endpoints of the form:
+((x1, y1), (x2, y2)).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.add_poly">
+<span class="sig-name descname"><span class="pre">add_poly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_poly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.add_poly" title="Link to this definition">¶</a></dt>
+<dd><p>Add polygon edges to this graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – A list of polyline/polygon vertices as 2-tuples (x, y).</p></li>
+<li><p><strong>close_poly</strong> – If True a closing segment will
+be automatically added if absent. Default is True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.boundary_polygon">
+<span class="sig-name descname"><span class="pre">boundary_polygon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.boundary_polygon" title="Link to this definition">¶</a></dt>
+<dd><p>A polygon defining the outer edges of this segment graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.bounding_box">
+<span class="sig-name descname"><span class="pre">bounding_box</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="geom2d.box.html#geom2d.box.Box" title="geom2d.box.Box"><span class="pre">Box</span></a></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.bounding_box" title="Link to this definition">¶</a></dt>
+<dd><p>Get the bounding rectangle for this graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing two points ((x0, y0), (x1, y1))
+specifying bottom left and top right corners.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.cull_open_edges">
+<span class="sig-name descname"><span class="pre">cull_open_edges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.cull_open_edges" title="Link to this definition">¶</a></dt>
+<dd><p>Remove edges that have one or two disconnected endpoints.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.edges">
+<span class="sig-name descname"><span class="pre">edges</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#geom2d.planargraph.Graph.edges" title="Link to this definition">¶</a></dt>
+<dd><p>Set of graph edges</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.get_face_polygons">
+<span class="sig-name descname"><span class="pre">get_face_polygons</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.get_face_polygons" title="Link to this definition">¶</a></dt>
+<dd><p>Graph face polygons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of face polygons.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.nodemap">
+<span class="sig-name descname"><span class="pre">nodemap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#geom2d.planargraph.Graph.nodemap" title="Link to this definition">¶</a></dt>
+<dd><p>Map of vertex points to graph nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.order">
+<span class="sig-name descname"><span class="pre">order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.order" title="Link to this definition">¶</a></dt>
+<dd><p>Number of graph nodes (vertices.).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.peel_boundary_polygon">
+<span class="sig-name descname"><span class="pre">peel_boundary_polygon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundary_polygon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.peel_boundary_polygon" title="Link to this definition">¶</a></dt>
+<dd><p>Similar to convex hull peeling but with non-convex boundary polygons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>boundary_polygon</strong> – The initial graph polygon hull to peel.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of peeled inner polygons. Possibly empty.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.remove_edge">
+<span class="sig-name descname"><span class="pre">remove_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.remove_edge" title="Link to this definition">¶</a></dt>
+<dd><p>Remove and unlink the specified edge from the graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>edge</strong> – A line segment that defines a graph edge
+connecting two nodes.
+An edge being a 2-tuple of endpoints of the form:
+((x1, y1), (x2, y2)).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.size">
+<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.size" title="Link to this definition">¶</a></dt>
+<dd><p>Number of edges.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.Graph.vertices">
+<span class="sig-name descname"><span class="pre">vertices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.planargraph.Graph.vertices" title="Link to this definition">¶</a></dt>
+<dd><p>Graph edge vertices.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">GraphNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geom2d.planargraph.GraphNode" title="Link to this definition">¶</a></dt>
+<dd><p>Graph node.</p>
+<p>A node has a vertex and a list of outgoing nodes that
+define the outgoing edges that connect to other nodes
+in the graph.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphNode.add_edge_node">
+<span class="sig-name descname"><span class="pre">add_edge_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.GraphNode.add_edge_node" title="Link to this definition">¶</a></dt>
+<dd><p>Add an outgoing edge node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>edge_node</strong> – Endpoint of outgoing edge.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphNode.ccw_edge_node">
+<span class="sig-name descname"><span class="pre">ccw_edge_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_spikes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></span><a class="headerlink" href="#geom2d.planargraph.GraphNode.ccw_edge_node" title="Link to this definition">¶</a></dt>
+<dd><p>The most CCW edge node.</p>
+<p>Starting at the reference edge defined by ref_node-&gt;this_node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref_node</strong> – The reference edge node.</p></li>
+<li><p><strong>skip_spikes</strong> – Skip over edges that connect to nodes of order one.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The counter-clockwise edge node closest to the reference node
+by angular distance. If all edges nodes are dead ends the
+reference node will be returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphNode.degree">
+<span class="sig-name descname"><span class="pre">degree</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#geom2d.planargraph.GraphNode.degree" title="Link to this definition">¶</a></dt>
+<dd><p>Number of incident graph edges.</p>
+<p>I.e. number of edges that share this node’s vertex.</p>
+<dl class="simple">
+<dt>See:</dt><dd><p><a class="reference external" href="http://mathworld.wolfram.com/VertexOrder.html">http://mathworld.wolfram.com/VertexOrder.html</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphNode.remove_edge_node">
+<span class="sig-name descname"><span class="pre">remove_edge_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.GraphNode.remove_edge_node" title="Link to this definition">¶</a></dt>
+<dd><p>Remove an outgoing edge node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphNode.sort_edges">
+<span class="sig-name descname"><span class="pre">sort_edges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.GraphNode.sort_edges" title="Link to this definition">¶</a></dt>
+<dd><p>Sort outgoing edges in CCW order.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphPathBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">GraphPathBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.Graph" title="geom2d.planargraph.Graph"><span class="pre">Graph</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geom2d.planargraph.GraphPathBuilder" title="Link to this definition">¶</a></dt>
+<dd><p>Create paths from connected graph edges.</p>
+<p>Given a Graph, build a set of paths made of connected graph edges.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphPathBuilder.build_longest_paths">
+<span class="sig-name descname"><span class="pre">build_longest_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.PathStrategy" title="geom2d.planargraph.PathStrategy"><span class="pre">PathStrategy</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PathStrategy.STRAIGHTEST</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.planargraph.GraphPathBuilder.build_longest_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Find the longest paths in this graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.GraphPathBuilder.build_paths">
+<span class="sig-name descname"><span class="pre">build_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.PathStrategy" title="geom2d.planargraph.PathStrategy"><span class="pre">PathStrategy</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PathStrategy.STRAIGHTEST</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.planargraph.GraphPathBuilder.build_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Build edge paths.</p>
+<p>Given the starting edge, find the set of edge paths that
+completely fill the graph…</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_edge</strong> – The graph edge that starts the path.</p></li>
+<li><p><strong>path_strategy</strong> – <p>How paths will be constructed. Possible
+path strategies are:</p>
+<blockquote>
+<div><p>STRAIGHTEST, SQUIGGLY,
+RANDOM, and RANDOM2</p>
+</div></blockquote>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of paths sorted by descending order of path length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="geom2d.planargraph.MarkedEdge">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">MarkedEdge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geom2d.planargraph.MarkedEdge" title="Link to this definition">¶</a></dt>
+<dd><p>A graph edge that is used to keep track of graph traversal direction.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.MarkedEdge.visited_left">
+<span class="sig-name descname"><span class="pre">visited_left</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dest_vertex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.planargraph.MarkedEdge.visited_left" title="Link to this definition">¶</a></dt>
+<dd><p>True if this edge has been visited with a CCW winding.</p>
+<p>The edge will be marked as visited.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dest_vertex</strong> – The destination vertex.
+Determines which side of the edge has been visited
+(i.e. direction).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if this edge has been visited during a counter-clockwise
+traversal. I.e. the left side given the direction.
+Otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="geom2d.planargraph.MarkedEdgeMap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">MarkedEdgeMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geom2d.planargraph.MarkedEdgeMap" title="Link to this definition">¶</a></dt>
+<dd><p>Map of edges to marked edges.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.MarkedEdgeMap.lookup">
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#geom2d.planargraph.MarkedEdge" title="geom2d.planargraph.MarkedEdge"><span class="pre">MarkedEdge</span></a></span></span><a class="headerlink" href="#geom2d.planargraph.MarkedEdgeMap.lookup" title="Link to this definition">¶</a></dt>
+<dd><p>Find a MarkedEdge by edge endpoints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geom2d.planargraph.MarkedEdgeMap.mark_edge">
+<span class="sig-name descname"><span class="pre">mark_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.MarkedEdgeMap.mark_edge" title="Link to this definition">¶</a></dt>
+<dd><p>Mark an edge segment as visited.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="geom2d.planargraph.PathStrategy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">PathStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geom2d.planargraph.PathStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Path building strategy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.planargraph.find_free_edge_node">
+<span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">find_free_edge_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edgemap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap" title="geom2d.planargraph.MarkedEdgeMap"><span class="pre">MarkedEdgeMap</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.find_free_edge_node" title="Link to this definition">¶</a></dt>
+<dd><p>Find a free outgoing edge that is unmarked for CCW edge traversal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edgemap</strong> – Map of marked visited edges.</p></li>
+<li><p><strong>start_node</strong> – Graph node to start face polygon.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.planargraph.make_face">
+<span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">make_face</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edgemap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap" title="geom2d.planargraph.MarkedEdgeMap"><span class="pre">MarkedEdgeMap</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#geom2d.planargraph.GraphNode" title="geom2d.planargraph.GraphNode"><span class="pre">GraphNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#geom2d.planargraph.make_face" title="Link to this definition">¶</a></dt>
+<dd><p>Create face polygon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edgemap</strong> – Map of marked visited edges.</p></li>
+<li><p><strong>start_node</strong> – Graph node to start face polygon.</p></li>
+<li><p><strong>next_node</strong> – First outgoing face vertex.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.planargraph.make_face_polygons">
+<span class="sig-prename descclassname"><span class="pre">geom2d.planargraph.</span></span><span class="sig-name descname"><span class="pre">make_face_polygons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodemap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TNodeMap</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#geom2d.planargraph.make_face_polygons" title="Link to this definition">¶</a></dt>
+<dd><p>Given a graph, make polygons from graph faces delineated by edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edges</strong> – Graph edges.</p></li>
+<li><p><strong>nodemap</strong> – A mapping of edges to nodes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">geom2d.planargraph</a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph"><code class="docutils literal notranslate"><span class="pre">Graph</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.add_edge"><code class="docutils literal notranslate"><span class="pre">Graph.add_edge()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.add_poly"><code class="docutils literal notranslate"><span class="pre">Graph.add_poly()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.boundary_polygon"><code class="docutils literal notranslate"><span class="pre">Graph.boundary_polygon()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.bounding_box"><code class="docutils literal notranslate"><span class="pre">Graph.bounding_box()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.cull_open_edges"><code class="docutils literal notranslate"><span class="pre">Graph.cull_open_edges()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.edges"><code class="docutils literal notranslate"><span class="pre">Graph.edges</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.get_face_polygons"><code class="docutils literal notranslate"><span class="pre">Graph.get_face_polygons()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.nodemap"><code class="docutils literal notranslate"><span class="pre">Graph.nodemap</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.order"><code class="docutils literal notranslate"><span class="pre">Graph.order()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.peel_boundary_polygon"><code class="docutils literal notranslate"><span class="pre">Graph.peel_boundary_polygon()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.remove_edge"><code class="docutils literal notranslate"><span class="pre">Graph.remove_edge()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.size"><code class="docutils literal notranslate"><span class="pre">Graph.size()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.Graph.vertices"><code class="docutils literal notranslate"><span class="pre">Graph.vertices()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode"><code class="docutils literal notranslate"><span class="pre">GraphNode</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.add_edge_node"><code class="docutils literal notranslate"><span class="pre">GraphNode.add_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.ccw_edge_node"><code class="docutils literal notranslate"><span class="pre">GraphNode.ccw_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.degree"><code class="docutils literal notranslate"><span class="pre">GraphNode.degree()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.remove_edge_node"><code class="docutils literal notranslate"><span class="pre">GraphNode.remove_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphNode.sort_edges"><code class="docutils literal notranslate"><span class="pre">GraphNode.sort_edges()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphPathBuilder"><code class="docutils literal notranslate"><span class="pre">GraphPathBuilder</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphPathBuilder.build_longest_paths"><code class="docutils literal notranslate"><span class="pre">GraphPathBuilder.build_longest_paths()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.GraphPathBuilder.build_paths"><code class="docutils literal notranslate"><span class="pre">GraphPathBuilder.build_paths()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdge"><code class="docutils literal notranslate"><span class="pre">MarkedEdge</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdge.visited_left"><code class="docutils literal notranslate"><span class="pre">MarkedEdge.visited_left()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap"><code class="docutils literal notranslate"><span class="pre">MarkedEdgeMap</span></code></a><ul>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap.lookup"><code class="docutils literal notranslate"><span class="pre">MarkedEdgeMap.lookup()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.MarkedEdgeMap.mark_edge"><code class="docutils literal notranslate"><span class="pre">MarkedEdgeMap.mark_edge()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geom2d.planargraph.PathStrategy"><code class="docutils literal notranslate"><span class="pre">PathStrategy</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.find_free_edge_node"><code class="docutils literal notranslate"><span class="pre">find_free_edge_node()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.make_face"><code class="docutils literal notranslate"><span class="pre">make_face()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.planargraph.make_face_polygons"><code class="docutils literal notranslate"><span class="pre">make_face_polygons()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="geom2d.line.html"
+                          title="previous chapter">geom2d.line</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="geom2d.plotpath.html"
+                          title="next chapter">geom2d.plotpath</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/geom2d api/geom2d.planargraph.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="geom2d.plotpath.html" title="geom2d.plotpath"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="geom2d.line.html" title="geom2d.line"
+             >previous</a> |</li>
+          <li><img src="../_static/py.svg" alt="python logo" style="vertical-align: middle; margin-top: -1px"/></li>
+          <li><a href="https://www.python.org/">Python</a> &#187;</li>
+          <li class="switchers">
+            <div class="language_switcher_placeholder"></div>
+            <div class="version_switcher_placeholder"></div>
+          </li>
+          <li>
+              
+              <a href="../index.html">utl-geom2d  documentation</a> &#187;
+              
+          </li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >geom2d</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">geom2d.planargraph</a></li>
+                <li class="right">
+                    
+
+    <div class="inline-search" role="search">
+        <form class="inline-search" action="../search.html" method="get">
+          <input placeholder="Quick search" aria-label="Quick search" type="search" name="q" id="search-box" />
+          <input type="submit" value="Go" />
+        </form>
+    </div>
+                     |
+                </li>
+            <li class="right">
+<label class="theme-selector-label">
+    Theme
+    <select class="theme-selector" oninput="activateTheme(this.value)">
+        <option value="auto" selected>Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label> |</li>
+            
+      </ul>
+    </div>  
+    <div class="footer">
+    &copy; Copyright 2024, Claude Zervas.
+    <br />
+    This page is licensed under the Python Software Foundation License Version 2.
+    <br />
+    Examples, recipes, and other code in the documentation are additionally licensed under the Zero Clause BSD License.
+    <br />
+    
+    <br />
+
+    The Python Software Foundation is a non-profit corporation.
+<a href="https://www.python.org/psf/donations/">Please donate.</a>
+<br />
+    <br />
+
+    Last updated on None.
+    
+    <br />
+
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>geom2d.polygon &#8212; utl-geom2d  documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydoctheme.css?v=aa5eeaf2" />
+    <link id="pygments_dark_css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css" href="../_static/pygments_dark.css?v=b20cc3f5" />
+    
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="geom2d.polyline" href="geom2d.polyline.html" />
+    <link rel="prev" title="geom2d.point" href="geom2d.point.html" /><link rel="stylesheet" href="../_static/pydoctheme_dark.css" media="(prefers-color-scheme: dark)" id="pydoctheme_dark_css">
+    <link rel="shortcut icon" type="image/png" href="../_static/py.svg" />
+            <script type="text/javascript" src="../_static/copybutton.js"></script>
+            <script type="text/javascript" src="../_static/menu.js"></script>
+            <script type="text/javascript" src="../_static/search-focus.js"></script>
+            <script type="text/javascript" src="../_static/themetoggle.js"></script> 
+  </head>
+<body>
+<div class="mobile-nav">
+    <input type="checkbox" id="menuToggler" class="toggler__input" aria-controls="navigation"
+           aria-pressed="false" aria-expanded="false" role="button" aria-label="Menu" />
+    <nav class="nav-content" role="navigation">
+        <label for="menuToggler" class="toggler__label">
+            <span></span>
+        </label>
+        <span class="nav-items-wrapper">
+            <a href="https://www.python.org/" class="nav-logo">
+                <img src="../_static/py.svg" alt="Logo"/>
+            </a>
+            <span class="version_switcher_placeholder"></span>
+            <form role="search" class="search" action="../search.html" method="get">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" class="search-icon">
+                    <path fill-rule="nonzero" fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                </svg>
+                <input placeholder="Quick search" aria-label="Quick search" type="search" name="q" />
+                <input type="submit" value="Go"/>
+            </form>
+        </span>
+    </nav>
+    <div class="menu-wrapper">
+        <nav class="menu" role="navigation" aria-label="main navigation">
+            <div class="language_switcher_placeholder"></div>
+            
+<label class="theme-selector-label">
+    Theme
+    <select class="theme-selector" oninput="activateTheme(this.value)">
+        <option value="auto" selected>Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label>
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">geom2d.polygon</a><ul>
+<li><a class="reference internal" href="#geom2d.polygon.area"><code class="docutils literal notranslate"><span class="pre">area()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.area_triangle"><code class="docutils literal notranslate"><span class="pre">area_triangle()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.centroid"><code class="docutils literal notranslate"><span class="pre">centroid()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.clipper2poly"><code class="docutils literal notranslate"><span class="pre">clipper2poly()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.convex_hull"><code class="docutils literal notranslate"><span class="pre">convex_hull()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.convex_hull_chan"><code class="docutils literal notranslate"><span class="pre">convex_hull_chan()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.intersect_line"><code class="docutils literal notranslate"><span class="pre">intersect_line()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.is_closed"><code class="docutils literal notranslate"><span class="pre">is_closed()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.is_inside"><code class="docutils literal notranslate"><span class="pre">is_inside()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.length"><code class="docutils literal notranslate"><span class="pre">length()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.offset_polygons"><code class="docutils literal notranslate"><span class="pre">offset_polygons()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.point_inside"><code class="docutils literal notranslate"><span class="pre">point_inside()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.poly2clipper"><code class="docutils literal notranslate"><span class="pre">poly2clipper()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.simplify_polyline_rdp"><code class="docutils literal notranslate"><span class="pre">simplify_polyline_rdp()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.simplify_polyline_vw"><code class="docutils literal notranslate"><span class="pre">simplify_polyline_vw()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.turn"><code class="docutils literal notranslate"><span class="pre">turn()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.winding"><code class="docutils literal notranslate"><span class="pre">winding()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="geom2d.point.html"
+                          title="previous chapter">geom2d.point</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="geom2d.polyline.html"
+                          title="next chapter">geom2d.polyline</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/geom2d api/geom2d.polygon.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </nav>
+    </div>
+</div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="geom2d.polyline.html" title="geom2d.polyline"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="geom2d.point.html" title="geom2d.point"
+             accesskey="P">previous</a> |</li>
+          <li><img src="../_static/py.svg" alt="python logo" style="vertical-align: middle; margin-top: -1px"/></li>
+          <li><a href="https://www.python.org/">Python</a> &#187;</li>
+          <li class="switchers">
+            <div class="language_switcher_placeholder"></div>
+            <div class="version_switcher_placeholder"></div>
+          </li>
+          <li>
+              
+              <a href="../index.html">utl-geom2d  documentation</a> &#187;
+              
+          </li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">geom2d</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">geom2d.polygon</a></li>
+                <li class="right">
+                    
+
+    <div class="inline-search" role="search">
+        <form class="inline-search" action="../search.html" method="get">
+          <input placeholder="Quick search" aria-label="Quick search" type="search" name="q" id="search-box" />
+          <input type="submit" value="Go" />
+        </form>
+    </div>
+                     |
+                </li>
+            <li class="right">
+<label class="theme-selector-label">
+    Theme
+    <select class="theme-selector" oninput="activateTheme(this.value)">
+        <option value="auto" selected>Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label> |</li>
+            
+      </ul>
+    </div>    
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-geom2d.polygon">
+<span id="geom2d-polygon"></span><h1>geom2d.polygon<a class="headerlink" href="#module-geom2d.polygon" title="Link to this heading">¶</a></h1>
+<p>Some handy polygon tools.</p>
+<p>Includes convex hull, area, and centroid calculations.</p>
+<hr class="docutils" />
+<p>Some references:
+<a class="reference external" href="http://paulbourke.net/geometry/">http://paulbourke.net/geometry/</a>
+<a class="reference external" href="http://geomalgorithms.com/index.html">http://geomalgorithms.com/index.html</a></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.area">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#geom2d.polygon.area" title="Link to this definition">¶</a></dt>
+<dd><p>Area of a simple polygon.</p>
+<p>Also determines winding (area &gt;= 0 ==&gt; CCW, area &lt; 0 ==&gt; CW).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vertices</strong> – the polygon vertices. A list of 2-tuple (x, y) points.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns (float):</dt><dd><p>The area of the polygon. The area will be negative if the
+vertices are ordered clockwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.area_triangle">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">area_triangle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#geom2d.polygon.area_triangle" title="Link to this definition">¶</a></dt>
+<dd><p>Area of a triangle.</p>
+<p>This is just a slightly more efficient specialization of
+the more general polygon area.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – The first vertex of a triangle or an iterable of three vertices.</p></li>
+<li><p><strong>b</strong> – The second vertex or None if <cite>a</cite> is iterable.</p></li>
+<li><p><strong>c</strong> – The third vertex or None if <cite>a</cite> is iterable.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns (float):</dt><dd><p>The area of the triangle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.centroid">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">centroid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a></span></span><a class="headerlink" href="#geom2d.polygon.centroid" title="Link to this definition">¶</a></dt>
+<dd><p>Return the centroid of a simple polygon.</p>
+<p>See <a class="reference external" href="http://paulbourke.net/geometry/polygonmesh/">http://paulbourke.net/geometry/polygonmesh/</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vertices</strong> – The polygon vertices. A list of 2-tuple (x, y) points.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The centroid point as a 2-tuple (x, y)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.clipper2poly">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">clipper2poly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clipper_poly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">clipper.Point</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.clipper2poly" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a Clipper polygon to a float tuple polygon.</p>
+<p>Convert a Clipper polygon (a list of integer 2-tuples) to
+a polygon (as a list of float 2-tuple vertices).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>clipper_poly</strong> – An interable of integer coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of floating point coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.convex_hull">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">convex_hull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.convex_hull" title="Link to this definition">¶</a></dt>
+<dd><p>Returns points on convex hull of an array of points in CCW order.</p>
+<p>Uses the Graham Scan algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>points</strong> – a list of 2-tuple (x, y) points.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The convex hull as a list of 2-tuple (x, y) points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.convex_hull_chan">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">convex_hull_chan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.convex_hull_chan" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the points on the convex hull of points in CCW order.</p>
+<p>Uses Chan’s algorithm. May be faster than Graham scan on
+large point collections.</p>
+<p>See <a class="reference external" href="http://tomswitzer.net/2010/12/2d-convex-hulls-chans-algorithm/">http://tomswitzer.net/2010/12/2d-convex-hulls-chans-algorithm/</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>points</strong> – a list of 2-tuple (x, y) points.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The convex hull as a list of 2-tuple (x, y) points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.intersect_line">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">intersect_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineseg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TLine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.line.html#geom2d.line.Line" title="geom2d.line.Line"><span class="pre">Line</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.intersect_line" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the intersection(s) of a polygon/polyline and a line segment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – Polygon vertices.</p></li>
+<li><p><strong>lineseg</strong> – A line possibly intersecting the polygon. A 2-tuple of line
+end points, each a 2-tuple <code class="docutils literal notranslate"><span class="pre">((x1,</span> <span class="pre">y1),</span> <span class="pre">(x2,</span> <span class="pre">y2))</span></code>.</p></li>
+<li><p><strong>edge_ok</strong> – Intersection considered if endpoint lies on polygon edge.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of one or more interior line segments that intersect
+the polygon or that lie completely within the polygon.
+Returns an empty list if there are no intersections.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.is_closed">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">is_closed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.polygon.is_closed" title="Link to this definition">¶</a></dt>
+<dd><p>Test if the polygon is closed.</p>
+<p>I.e. if the first vertice matches the last vertice.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.is_inside">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">is_inside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polygon1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polygon2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.polygon.is_inside" title="Link to this definition">¶</a></dt>
+<dd><p>Is polygon2 inside polygon1?</p>
+<p>It is assumed that the polygons
+are non-intersecting and non-self-intersecting.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.length">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polyline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#geom2d.polygon.length" title="Link to this definition">¶</a></dt>
+<dd><p>The total length of a polyline.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.offset_polygons">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">offset_polygons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jointype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">clipper.JoinType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.offset_polygons" title="Link to this definition">¶</a></dt>
+<dd><p>Offset a polygon by <em>offset</em> amount.</p>
+<p>This is also called polygon buffering.</p>
+<dl class="simple">
+<dt>See:</dt><dd><p><a class="reference external" href="http://www.angusj.com/delphi/clipper.php">http://www.angusj.com/delphi/clipper.php</a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poly</strong> – A polygon as a list of 2-tuple vertices.</p></li>
+<li><p><strong>offset</strong> – The amount to offset (can be negative).</p></li>
+<li><p><strong>jointype</strong> – The type of joins for offset vertices.</p></li>
+<li><p><strong>limit</strong> – The max distance to a offset vertice before it
+will be squared off.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Zero or more offset polygons as a list of 2-tuple vertices.
+If the specified offset cannot be performed for the input polygon
+an empty list will be returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.point_inside">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">point_inside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TPoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#geom2d.polygon.point_inside" title="Link to this definition">¶</a></dt>
+<dd><p>Test if point is inside a closed polygon.</p>
+<p>See: <a class="reference external" href="https://wrfranklin.org/Research/Short_Notes/pnpoly.html">https://wrfranklin.org/Research/Short_Notes/pnpoly.html</a>
+Also: <a class="reference external" href="http://erich.realtimerendering.com/ptinpoly/">http://erich.realtimerendering.com/ptinpoly/</a>
+Also: <a class="reference external" href="http://paulbourke.net/geometry/polygonmesh/">http://paulbourke.net/geometry/polygonmesh/</a></p>
+<p>The original C code:</p>
+<p>int pnpoly(int nvert, float <a href="#id1"><span class="problematic" id="id2">*</span></a>x, float <a href="#id3"><span class="problematic" id="id4">*</span></a>y, float testx, float testy)
+{</p>
+<blockquote>
+<div><p>int i, j, c = 0;
+for (i = 0, j = nvert-1; i &lt; nvert; j = i++) {</p>
+<blockquote>
+<div><dl class="simple">
+<dt>if (</dt><dd><p>((y[i] &gt; testy) != (y[j] &gt; testy)) &amp;&amp;
+(testx &lt; (x[j] - x[i]) * (testy - y[i]) / (y[j] - y[i]) + x[i])</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>)</dt><dd><p>c = !c;</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>}
+return c;</p>
+</div></blockquote>
+<p>}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – polygon vertices. A list of 2-tuple (x, y) points.</p></li>
+<li><p><strong>p</strong> – Point to test.</p></li>
+<li><p><strong>edge_ok</strong> – Point is considered inside if it lies on a vertex
+or an edge segment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the point lies inside the polygon, else False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.poly2clipper">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">poly2clipper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">clipper.Point</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.poly2clipper" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a polygon to a Clipper polygon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>poly</strong> – An iterable of floating point coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Clipper polygon which is a list of integer coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.simplify_polyline_rdp">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">simplify_polyline_rdp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.simplify_polyline_rdp" title="Link to this definition">¶</a></dt>
+<dd><p>Simplify a polyline.</p>
+<p>A polyline is a sequence of vertices.</p>
+<p>Uses Ramer-Douglas-Peucker algorithm.</p>
+<dl class="simple">
+<dt>See:</dt><dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm">https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm</a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> – A sequence of polyline vertices.</p></li>
+<li><p><strong>tolerance</strong> (<em>float</em>) – Line flatness tolerance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of points defining the vertices of the simplified polyline.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.simplify_polyline_vw">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">simplify_polyline_vw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="geom2d.point.html#geom2d.point.P" title="geom2d.point.P"><span class="pre">P</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#geom2d.polygon.simplify_polyline_vw" title="Link to this definition">¶</a></dt>
+<dd><p>Simplify a polyline.</p>
+<p>Uses Visvalingam-Whyatt algorithm.</p>
+<dl class="simple">
+<dt>See:</dt><dd><p>Visvalingam, M., and Whyatt, J.D. (1992)
+“Line Generalisation by Repeated Elimination of Points”,
+Cartographic J., 30 (1), 46 - 51</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> – A sequence of polyline vertices.</p></li>
+<li><p><strong>tolerance</strong> – Line flatness tolerance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of points defining the vertices of the simplified polyline.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.turn">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">turn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#geom2d.polygon.turn" title="Link to this definition">¶</a></dt>
+<dd><p>Determine relative direction of point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> – Point from which initial direction is determined.</p></li>
+<li><p><strong>q</strong> – Point from which turn is determined.</p></li>
+<li><p><strong>r</strong> – End point which determines turn direction.
+I.e. from q this point is to the left or right
+of p.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>-1, 0, 1 if p,q,r forms a right, straight, or left turn.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="geom2d.polygon.winding">
+<span class="sig-prename descclassname"><span class="pre">geom2d.polygon.</span></span><span class="sig-name descname"><span class="pre">winding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">TPoint</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#geom2d.polygon.winding" title="Link to this definition">¶</a></dt>
+<dd><p>Determine polygon winding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>1 if CCW else -1 if CW</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">geom2d.polygon</a><ul>
+<li><a class="reference internal" href="#geom2d.polygon.area"><code class="docutils literal notranslate"><span class="pre">area()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.area_triangle"><code class="docutils literal notranslate"><span class="pre">area_triangle()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.centroid"><code class="docutils literal notranslate"><span class="pre">centroid()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.clipper2poly"><code class="docutils literal notranslate"><span class="pre">clipper2poly()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.convex_hull"><code class="docutils literal notranslate"><span class="pre">convex_hull()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.convex_hull_chan"><code class="docutils literal notranslate"><span class="pre">convex_hull_chan()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.intersect_line"><code class="docutils literal notranslate"><span class="pre">intersect_line()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.is_closed"><code class="docutils literal notranslate"><span class="pre">is_closed()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.is_inside"><code class="docutils literal notranslate"><span class="pre">is_inside()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.length"><code class="docutils literal notranslate"><span class="pre">length()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.offset_polygons"><code class="docutils literal notranslate"><span class="pre">offset_polygons()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.point_inside"><code class="docutils literal notranslate"><span class="pre">point_inside()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.poly2clipper"><code class="docutils literal notranslate"><span class="pre">poly2clipper()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.simplify_polyline_rdp"><code class="docutils literal notranslate"><span class="pre">simplify_polyline_rdp()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.simplify_polyline_vw"><code class="docutils literal notranslate"><span class="pre">simplify_polyline_vw()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.turn"><code class="docutils literal notranslate"><span class="pre">turn()</span></code></a></li>
+<li><a class="reference internal" href="#geom2d.polygon.winding"><code class="docutils literal notranslate"><span class="pre">winding()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="geom2d.point.html"
+                          title="previous chapter">geom2d.point</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="geom2d.polyline.html"
+                          title="next chapter">geom2d.polyline</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/geom2d api/geom2d.polygon.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="geom2d.polyline.html" title="geom2d.polyline"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="geom2d.point.html" title="geom2d.point"
+             >previous</a> |</li>
+          <li><img src="../_static/py.svg" alt="python logo" style="vertical-align: middle; margin-top: -1px"/></li>
+          <li><a href="https://www.python.org/">Python</a> &#187;</li>
+          <li class="switchers">
+            <div class="language_switcher_placeholder"></div>
+            <div class="version_switcher_placeholder"></div>
+          </li>
+          <li>
+              
+              <a href="../index.html">utl-geom2d  documentation</a> &#187;
+              
+          </li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >geom2d</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">geom2d.polygon</a></li>
+                <li class="right">
+                    
+
+    <div class="inline-search" role="search">
+        <form class="inline-search" action="../search.html" method="get">
+          <input placeholder="Quick search" aria-label="Quick search" type="search" name="q" id="search-box" />
+          <input type="submit" value="Go" />
+        </form>
+    </div>
+                     |
+                </li>
+            <li class="right">
+<label class="theme-selector-label">
+    Theme
+    <select class="theme-selector" oninput="activateTheme(this.value)">
+        <option value="auto" selected>Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label> |</li>
+            
+      </ul>
+    </div>  
+    <div class="footer">
+    &copy; Copyright 2024, Claude Zervas.
+    <br />
+    This page is licensed under the Python Software Foundation License Version 2.
+    <br />
+    Examples, recipes, and other code in the documentation are additionally licensed under the Zero Clause BSD License.
+    <br />
+    
+    <br />
+
+    The Python Software Foundation is a non-profit corporation.
+<a href="https://www.python.org/psf/donations/">Please donate.</a>
+<br />
+    <br />
+
+    Last updated on None.
+    
+    <br />
+
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+
+  </body>
+</html>

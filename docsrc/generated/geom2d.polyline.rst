@@ -1,0 +1,5 @@
+﻿geom2d.polyline
+===============
+
+.. automodule:: geom2d.polyline
+   :members:
