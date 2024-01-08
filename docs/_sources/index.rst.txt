@@ -1,9 +1,11 @@
 geom2d
 ======
 
-A simple 2D geometry package that includes
-point, line, arc, ellipse, cubic bezier,
-and miscellaneous implementations of computational geometry solutions.
+A simple pure Python 2D geometry package that includes
+point, line, arc, ellipse, cubic Bezier curves,
+and miscellaneous implementations of computational geometry solutions
+such as Voronoi diagrams, convex hull, biarc approximation of Bezier curves,
+polygon intersection, etc.
 
 All objects (points, lines, etc) are implemented as immutable tuples.
 
