@@ -1,5 +1,0 @@
-﻿geom2d.arc
-==========
-
-.. automodule:: geom2d.arc
-   :members:
