@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 import sys
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from itertools import starmap
 from typing import TYPE_CHECKING
 
@@ -29,14 +29,14 @@ try:
 except ImportError:
     from itertools import tee
 
-    def pairwise(iterable: Iterable) -> Iterable:
+    def pairwise(iterable: Iterable) -> Iterable:  # type: ignore [no-redef]
         """Implement itertools.pairwise for python < 3.10."""
         a, b = tee(iterable)
         next(b, None)
         return zip(a, b)
 
 
-def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterable[TPoint]:
+def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterator[TPoint]:
     """Convert a polypath to a polyline.
 
     Args:
@@ -52,7 +52,7 @@ def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterable[TPoint]:
         yield p2
 
 
-def polyline_to_polypath(polyline: Iterable[TPoint]) -> Iterable[Line]:
+def polyline_to_polypath(polyline: Iterable[TPoint]) -> Iterator[Line]:
     """Convert a polyline to a polypath.
 
     Args:

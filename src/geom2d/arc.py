@@ -12,7 +12,7 @@ import math
 from typing import TYPE_CHECKING
 
 # from geom2d import debug
-from . import const, ellipse, util
+from . import const, ellipse
 from .const import TAU
 from .line import Line
 from .point import P
@@ -23,8 +23,10 @@ if TYPE_CHECKING:
     from .point import TPoint
     from .transform2d import TMatrix
 
+if const.DEBUG:
+    from . import debug
 
-# pylint: disable=too-many-public-methods
+
 # TODO: Refactor to generalized EllipticalArc
 class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     """Two dimensional immutable circular arc segment.
@@ -48,23 +50,44 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         angle: float,
         center: TPoint | None = None,
     ) -> Self:
-        """Create a new Arc object."""
+        """Create a new Arc object.
+
+        Args:
+            p1: Start point of arc.
+            p2: End point of arc.
+            radius: Radius of arc.
+            angle: Sweep angle.
+            center: Arc center. Will be calculated if None.
+        """
         p1 = P(p1)
         p2 = P(p2)
         center = P(center) if center else Arc.calc_center(p1, p2, radius, angle)
-        # DEBUG start
-        # Perform a sanity check
-        # d1 = p1.distance(center)
-        # d2 = p2.distance(center)
-        # if not (const.float_eq(d1, d2)
-        #    and const.float_eq(d1, radius)
-        #    and -TAU < angle < TAU and
-        #    const.float_eq(angle, center.angle2(p1, p2))
-        # ):
-        #    p1.svg_plot(color='#00ff00')
-        #    p2.svg_plot(color='#0000ff')
-        #    assert const.float_eq(angle, center.angle2(p1, p2))
-        # DEBUG end
+
+        if const.DEBUG:
+            # Perform a sanity check
+            d1 = p1.distance(center)
+            d2 = p2.distance(center)
+            # Check for consistent radius
+            if not const.float_eq(d1, d2):
+                raise ValueError(
+                    'Bad arc: '
+                    f'd1={d1} != d2={d2}, '
+                    f'p1={p1} p2={p2} radius={radius} center={center} '
+                    f'angle={angle} center={center}'
+                )
+            assert const.float_eq(d1, radius)
+            assert -TAU < angle < TAU
+            if not const.float_eq(abs(angle), abs(center.angle2(p1, p2))):
+                debug.draw_point(p1, color='#ff0000')
+                debug.draw_point(p2, color='#00ff00')
+                debug.draw_point(center, color='#ffff00')
+                raise ValueError(
+                    'Bad arc: '
+                    f'angle={angle} != {center.angle2(p1, p2)} '
+                    f'p1={p1} p2={p2} radius={radius} center={center} '
+                    f'd1={d1} d2={d2}'
+                )
+
         return super().__new__(
             cls,
             (p1, p2, radius, angle, center),  # type: ignore [arg-type, type-var]
@@ -221,6 +244,10 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         """True if arc direction is clockwise from first point to end point."""
         return self.angle < 0
 
+    def direction(self) -> int:
+        """Return -1 if clockwise or 1 if counter-clockwise."""
+        return -1 if self.angle < 0 else 1
+
     def start_tangent_angle(self) -> float:
         """The start direction of this arc segment in radians.
 
@@ -228,13 +255,18 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         first point. Unlike a chord tangent angle this angle is
         from the x axis. Value is between -PI and PI.
         """
-        # TODO: simplify and optimize
-        vector = (
-            self.center - self.p1
-            if self.is_clockwise()
-            else self.p1 - self.center
-        )
-        return util.normalize_angle(vector.angle() + (math.pi / 2), center=0.0)
+        x, y = self.center - self.p1
+        if self.is_clockwise():
+            return math.atan2(x, -y)
+        return math.atan2(-x, y)
+
+        # vector = (
+        #    self.center - self.p1
+        #    if self.is_clockwise()
+        #    else self.p1 - self.center
+        # )
+        # print(f'vector {vector} {vector.angle()}')
+        # return util.normalize_angle(vector.angle() + (math.pi / 2), center=0.0)
 
     def end_tangent_angle(self) -> float:
         """The end direction of this arc segment in radians.
@@ -242,13 +274,16 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         This is the angle of a tangent vector at the arc segment's
         end point. Value is between -PI and PI.
         """
-        # TODO: simplify
-        vector = (
-            self.center - self.p2
-            if self.is_clockwise()
-            else self.p2 - self.center
-        )
-        return util.normalize_angle(vector.angle() + (math.pi / 2), center=0.0)
+        x, y = self.center - self.p2
+        if self.is_clockwise():
+            return math.atan2(x, -y)
+        return math.atan2(-x, y)
+        # vector = (
+        #    self.center - self.p2
+        #    if self.is_clockwise()
+        #    else self.p2 - self.center
+        # )
+        # return util.normalize_angle(vector.angle() + (math.pi / 2), center=0.0)
 
     def height(self) -> float:
         """The distance between the chord midpoint and the arc midpoint.
@@ -302,6 +337,11 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             An Arc offset by `distance` from this one.
         """
         if preserve_center:
+            new_radius = self.radius + distance
+            if new_radius < 0 or const.is_zero(new_radius):
+                raise ValueError(
+                    f'Cannot offset arc of radius {self.radius} by {distance}.'
+                )
             line1 = Line(self.center, self.p1).extend(distance)
             line2 = Line(self.center, self.p2).extend(distance)
             return Arc(
@@ -343,11 +383,8 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         aangle = abs(self.angle)
         if const.float_eq(aangle, math.pi):
             which_side = Line(self.p1, self.p2).which_side(p)
-            is_inside_arc = (
-                which_side == 1
-                and self.angle < 0
-                or which_side == -1
-                and self.angle > 0
+            is_inside_arc = (which_side == 1 and self.angle < 0) or (
+                which_side == -1 and self.angle > 0
             )
         elif aangle > math.pi:
             # TODO: test this...
@@ -543,6 +580,16 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             )
         return False
 
+    def normal_projection_point(
+        self, p: TPoint, segment: bool = False
+    ) -> P | None:
+        """Normal project of point p to this arc."""
+        ray = Line(self.center, p)
+        intersections = self.intersect_line(ray, on_arc=segment)
+        if intersections:
+            return intersections[0]
+        return None
+
     def intersect_line(  # too-many-locals
         self, line: Line, on_arc: bool = False, on_line: bool = False
     ) -> list[P]:
@@ -638,15 +685,17 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     def __str__(self) -> str:
         """Convert this Arc to a readable string."""
         return (
-            f'Arc({self.p1}, {self.p2}, {self.radius},'
-            f' {self.angle}, {self.center})'
+            f'Arc({self.p1}, {self.p2}, '
+            f'{self.radius:.{const.EPSILON_PRECISION}f}, '
+            f'{self.angle:.{const.EPSILON_PRECISION}f}, '
+            f'{self.center})'
         )
 
     def __repr__(self) -> str:
         """Convert this Arc to a string."""
         return (
-            f'Arc(P{self.p1}, P{self.p2}, P{self.radius},'
-            f' P{self.angle}, P{self.center})'
+            f'Arc({self.p1!r}, {self.p2!r}, {self.radius}, '
+            f'{self.angle}, {self.center!r})'
         )
 
     def to_svg_path(self, mpart: bool = True) -> str:
@@ -656,7 +705,6 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         that corresponds to this arc.
         """
         sweep_flag = 0 if self.angle < 0 else 1
-        # return 'M %f %f A %f %f 0.0 0 %d %f %f' % (
         dpart = (
             f'A {self.radius} {self.radius} 0.0 0'
             f' {sweep_flag} {self.p2.x} {self.p2.y}'

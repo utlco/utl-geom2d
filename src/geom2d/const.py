@@ -11,12 +11,16 @@ with a call to :py:func:`set_epsilon()` before using the :py:mod:`geom2d` API.
 at import time due to this possible mutability.
 
 """
+
 # pylint: disable=global-statement
-# ruff: noqa PLW0603
+# ruff: noqa: PLW0603
 from __future__ import annotations
 
 import math
+import os
 import sys
+
+DEBUG = bool(os.environ.get('DEBUG', os.environ.get('GEOM2D_DEBUG')))
 
 TAU: float = math.pi * 2.0
 """Commonly used constant 2 * *pi*."""
@@ -60,11 +64,11 @@ def set_epsilon(value: float) -> None:
 
     This updates the global constants:
 
-        - :py:const:`EPSILON` 
-        - :py:const:`EPSILON2` 
-        - :py:const:`EPSILON_PRECISION` 
-        - :py:const:`REPSILON` 
-        - :py:const:`MAX_XY` 
+        - :py:const:`EPSILON`
+        - :py:const:`EPSILON2`
+        - :py:const:`EPSILON_PRECISION`
+        - :py:const:`REPSILON`
+        - :py:const:`MAX_XY`
 
     """
     global EPSILON, EPSILON2, EPSILON_PRECISION, REPSILON, MAX_XY
@@ -124,6 +128,24 @@ def float_eq3(a: float, b: float, tolerance: float | None = None) -> bool:
 
 
 float_eq = float_eq3
+
+
+def angle_eq(a: float, b: float, tolerance: float | None = None) -> bool:
+    """Special case of float_eq where angles close to +-PI are considered equal."""
+    if tolerance is None:
+        tolerance = EPSILON
+
+    # Avoid function calls to max/abs
+    aa = a if a >= 0 else -a
+    bb = b if b >= 0 else -b
+    ab_max = aa if aa > bb else bb  # noqa: FURB136
+
+    if ab_max > 1.0:
+        tolerance *= ab_max  # scale for larger numbers
+
+    return (a - b if a > b else b - a) < tolerance or (
+        abs(math.pi - aa) < tolerance and abs(math.pi - bb) < tolerance
+    )
 
 
 def is_zero(value: float) -> bool:

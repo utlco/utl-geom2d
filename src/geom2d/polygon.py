@@ -9,21 +9,26 @@ Some references:
 
 ====
 """
+
 from __future__ import annotations
 
 import functools
 import heapq
+import itertools
 import math
 from typing import TYPE_CHECKING
 
 from contrib import clipper
 
-from . import const, debug, point
+from . import const, point
 from .line import Line, TLine
 from .point import P, TPoint
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+
+# TODO: refactor functions to allow iterable instead of Sequence
+
 
 TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
 
@@ -120,11 +125,8 @@ def _rtangent(hull: list[P], p: TPoint) -> int:
         c_side = turn(p, hull[k], hull[c])
         if TURN_RIGHT not in (c_prev, c_next):
             return c
-        if (
-            c_side == TURN_LEFT
-            and k_next in (TURN_RIGHT, k_prev)
-            or c_side == TURN_RIGHT
-            and c_prev == TURN_RIGHT
+        if (c_side == TURN_LEFT and k_next in (TURN_RIGHT, k_prev)) or (
+            c_side == TURN_RIGHT and c_prev == TURN_RIGHT
         ):
             r = c  # Tangent touches left chain
         else:
@@ -166,7 +168,7 @@ def _next_hull_pt_pair(
         s = _rtangent(hulls[h], p)
         q, r = hulls[nextpair[0]][nextpair[1]], hulls[h][s]
         t = turn(p, q, r)
-        if t == TURN_RIGHT or t == TURN_NONE and _dist2(p, r) > _dist2(p, q):
+        if t == TURN_RIGHT or (t == TURN_NONE and _dist2(p, r) > _dist2(p, q)):
             nextpair = (h, s)
     return nextpair
 
@@ -214,7 +216,7 @@ def winding(vertices: Sequence[TPoint]) -> int:
     return (a >= const.EPSILON) - (a < const.EPSILON)
 
 
-def area(vertices: Sequence[TPoint]) -> float:
+def area(vertices: Iterable[TPoint]) -> float:
     """Area of a simple polygon.
 
     Also determines winding (area >= 0 ==> CCW, area < 0 ==> CW).
@@ -226,13 +228,32 @@ def area(vertices: Sequence[TPoint]) -> float:
         The area of the polygon. The area will be negative if the
         vertices are ordered clockwise.
     """
+    # This works for non-closed polygons as well.
+    # a = 0.0
+    # for n in range(-1, len(vertices) - 1):
+    #    p2 = vertices[n]
+    #    p1 = vertices[n + 1]
+    #    # Accumulate the cross product of each pair of vertices
+    #    a += (p1[0] * p2[1]) - (p2[0] * p1[1])
+    # return a / 2
+
     a = 0.0
-    for n in range(-1, len(vertices) - 1):
-        p2 = vertices[n]
-        p1 = vertices[n + 1]
+    startp: TPoint | None = None
+    for p1, p2 in itertools.pairwise(vertices):
+        # Keep track of the start point in case polygon is not closed
+        if not startp:
+            startp = p1
         # Accumulate the cross product of each pair of vertices
         a += (p1[0] * p2[1]) - (p2[0] * p1[1])
-    return a / 2
+
+    # Close polygon if necessary
+    if startp and (
+        not const.float_eq(p2[0], startp[0])
+        or not const.float_eq(p2[1], startp[1])
+    ):
+        a += (p2[0] * startp[1]) - (startp[0] * p2[1])
+
+    return -a / 2
 
 
 def area_triangle(
@@ -266,7 +287,7 @@ def area_triangle(
     return abs(det) / 2
 
 
-def centroid(vertices: list[TPoint]) -> P:
+def centroid(vertices: Sequence[TPoint]) -> P:
     """Return the centroid of a simple polygon.
 
     See http://paulbourke.net/geometry/polygonmesh/
@@ -274,6 +295,7 @@ def centroid(vertices: list[TPoint]) -> P:
     :param vertices: The polygon vertices. A list of 2-tuple (x, y) points.
     :return: The centroid point as a 2-tuple (x, y)
     """
+    # TODO: allow iterable for vertices
     num_vertices = len(vertices)
     # Handle degenerate cases for point and single segment
     if num_vertices == 1:
@@ -416,7 +438,7 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
         #        pass
         if edge_ok and lineseg == edge:
             # Line is coincident with polygon edge
-            debug.draw_line(lineseg, color='#0000ff')
+            # debug.draw_line(lineseg, color='#0000ff')
             return [lineseg]
         # Find the intersection unit distance (mu) from the line start point
         mu = lineseg.intersection_mu(edge, segment=True)
@@ -447,7 +469,7 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
         while i < num_intersections:
             p2 = lineseg.point_at(intersections[i])
             if p1 != p2:  # ignore degenerate lines - may not be necessary...
-                debug.draw_line(Line(p1, p2), color='#00ff00')
+                # debug.draw_line(Line(p1, p2), color='#00ff00')
                 segments.append(Line(p1, p2))
             if (i + 1) == num_intersections:
                 break
@@ -455,7 +477,7 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
             i += 2
     elif p1_inside and p2_inside:
         # Line segment is completely contained by the polygon
-        debug.draw_line(lineseg, color='#ff0000')
+        # debug.draw_line(lineseg, color='#ff0000')
         return [lineseg]
     return segments
 
@@ -604,9 +626,10 @@ def simplify_polyline_rdp(
         A list of points defining the vertices of the simplified polyline.
     """
     num_points = len(points)
-    # Polyline must have at least three points to be simplified...
     if num_points < 3:
+        # Nothing to simplify
         return [P(p) for p in points]
+
     # Find the index of the point that's farthest from a chord
     # connecting the endpoints of the polyline.
     dmax = 0.0
@@ -621,7 +644,7 @@ def simplify_polyline_rdp(
 
     if dmax > tolerance:
         if num_points == 3:
-            # Can't sub-divide an further
+            # Can't sub-divide any further
             return [P(p) for p in points]
         # Divide the polyline at the max distance point and
         # recursively get the simplified sub-polylines.
@@ -664,18 +687,32 @@ def simplify_polyline_vw(points: Sequence[TPoint], tolerance: float) -> list[P]:
         # Nothing to simplify...
         return [P(p) for p in points]
 
+    # Create a min-heap based on point triangle areas
     minheap: list = []
-    # Populate a min-heap with triangle areas
-    p1 = points[0]
-    p2 = points[1]
-    for i, p3 in enumerate(points[2:]):
+    ip3 = iter(points)
+    next(ip3, None)
+    p2 = next(ip3)
+    p3 = next(ip3)
+    for i, p1 in enumerate(points):
+        # Save the area and point index
         tarea = area_triangle(p1, p2, p3)
-        # A tuple with the vertex index and area of the triangle
-        # between it and its neighbor vertices.
-        ht = (i + 1, tarea)
+        ht = (tarea, i + 1)
         heapq.heappush(minheap, ht)
-        p1 = p2
         p2 = p3
+        p3 = next(ip3)
+
+    # minheap: list = []
+    # Populate a min-heap with triangle areas
+    # p1 = points[0]
+    # p2 = points[1]
+    # for i, p3 in enumerate(points[2:]):
+    #    tarea = area_triangle(p1, p2, p3)
+    #    # A tuple with the vertex index and area of the triangle
+    #    # between it and its neighbor vertices.
+    #    ht = (tarea, i + 1)
+    #    heapq.heappush(minheap, ht)
+    #    p1 = p2
+    #    p2 = p3
 
     n = int(tolerance * len(points))
     n = max(1, min(n, int(len(points) / 2)))

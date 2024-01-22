@@ -449,6 +449,8 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             A new Line.
         """
         length = self.length()
+        if length == 0.0:  # const.is_zero(length):
+            raise ValueError('Cannot extend line of zero length.')
         #         x1, y1 = self[0]
         #         x2, y2 = self[1]
         #         if from_midpoint:
@@ -482,7 +484,7 @@ class Line(tuple[P, P]):  # noqa: SLOT001
         dxdy = (self.p2 - self.p1) * (amount / self.length())
         return Line(self.p1 + dxdy, self.p2 + dxdy)
 
-    def which_side(self, p: P, inline: bool = False) -> int:
+    def which_side(self, p: TPoint, inline: bool = False) -> int:
         """Determine which side of this line a point lies.
 
         Args:
@@ -495,7 +497,8 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             If ``inline`` is True and the point is inline then 0.
         """
         v1 = self.p2 - self.p1
-        v2 = p - self.p1
+        # v2 = p - self.p1
+        v2 = p[0] - self.p1.x, p[1] - self.p1.y
         cp = v1.cross(v2)
         if inline and const.is_zero(cp):
             return 0

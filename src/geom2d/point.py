@@ -1,8 +1,5 @@
-# -----------------------------------------------------------------------------
-# Copyright 2012-2023 Claude Zervas
-# email: claude@utlco.com
-# -----------------------------------------------------------------------------
 """Basic 2D point/vector."""
+
 from __future__ import annotations
 
 import math
@@ -41,12 +38,12 @@ def max_xy() -> float:
     This is a function not a constant because const.EPSILON is
     potentially mutable.
     """
-    #h = max(_HASH_PRIME_X, _HASH_PRIME_Y)
-    #return sys.float_info.max / (h * const.REPSILON)
+    # h = max(_HASH_PRIME_X, _HASH_PRIME_Y)
+    # return sys.float_info.max / (h * const.REPSILON)
     return const.MAX_XY
 
 
-#def big_xy() -> float:
+# def big_xy() -> float:
 #    """A reasonably big value for X or Y.
 #
 #    This is a function not a constant because const.EPSILON is
@@ -169,7 +166,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
                 distribution. Mu is midpoint of min/max span,
                 sigma is half span divided by 3.
         """
-        big_x = const.MAX_XY # big_xy()
+        big_x = const.MAX_XY  # big_xy()
         min_x = max(min_x, -big_x)
         max_x = min(max_x, big_x)
         if min_y is None:
@@ -267,7 +264,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         return P(-self[0], -self[1])
 
     def dot(self, other: TPoint) -> float:
-        """Compute the dot product with another vector.
+        r"""Compute the dot product with another vector.
 
         Equivalent to \|p1\| * \|p2\| * cos(theta) where theta is the
         angle between the two vectors.

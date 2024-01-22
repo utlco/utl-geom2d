@@ -1,15 +1,10 @@
-# -----------------------------------------------------------------------------
-# Copyright 2012-2016 Claude Zervas
-# email: claude@utlco.com
-# -----------------------------------------------------------------------------
 """Two dimensional ellipse and elliptical arc."""
+
 from __future__ import annotations
 
-import logging
 import math
 from typing import TYPE_CHECKING
 
-# import geom.debug
 from . import const
 from .line import Line
 from .point import P, TPoint
@@ -17,9 +12,8 @@ from .point import P, TPoint
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
+    from inkext.svg import SVGContext
     from transform2d import TMatrix
-
-logger = logging.getLogger(__name__)
 
 
 class Ellipse:
@@ -41,6 +35,13 @@ class Ellipse:
         http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
         https://en.wikipedia.org/wiki/Eccentric_anomaly
     """
+
+    p1: P
+    p2: P
+    rx: float
+    ry: float
+    center: P
+    phi: float
 
     def __init__(
         self,
@@ -75,6 +76,27 @@ class Ellipse:
         # Normalize axes
         self.rx = max(rx, ry)
         self.ry = min(rx, ry)
+
+        self.p1 = self.point_at(0)
+        self.p2 = self.p1
+
+    #    @property
+    #    def p1(self) -> P:
+    #        """Virtual start point.
+    #
+    #        This is just to be orthogonal with the rest
+    #        of the geometric objects.
+    #        """
+    #        return self.point_at(0)
+    #
+    #    @property
+    #    def p2(self) -> P:
+    #        """Virtual end point.
+    #
+    #        This is just to be orthogonal with the rest
+    #        of the geometric objects.
+    #        """
+    #        return self.point_at(0)
 
     def is_circle(self) -> bool:
         """True if this ellipse is a circle."""
@@ -123,8 +145,7 @@ class Ellipse:
         sin_t = math.sin(t)
         x = (self.rx * cos_theta * cos_t) - (self.ry * sin_theta * sin_t)
         y = (self.rx * sin_theta * cos_t) + (self.ry * cos_theta * sin_t)
-        # return (*self.center, x, y)
-        return P(x, y)
+        return self.center + P(x, y)
 
     def point_inside(self, p: TPoint) -> bool:
         """Test if point is inside ellipse or not.
@@ -207,6 +228,13 @@ class Ellipse:
             dy = -(self.rx * sin_theta * cos_t) - (self.ry * cos_theta * sin_t)
         return P(dx, dy)
 
+    def transform(self, _matrix: TMatrix) -> EllipticalArc:
+        """Transform this using the specified affine transform matrix."""
+        # TODO: implement this.
+        # See:
+        # http://atrey.karlin.mff.cuni.cz/projekty/vrr/doc/man/progman/Elliptic-arcs.html
+        raise RuntimeError('not implemented.')
+
     def _init_axes(self, rx: float, ry: float, phi: float) -> None:
         """Make sure major and minor axes are not reversed."""
         rx = abs(rx)
@@ -227,6 +255,11 @@ class EllipticalArc(Ellipse):
     See:
         http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
     """
+
+    start_angle: float
+    sweep_angle: float
+    large_arc: float
+    sweep_flag: float
 
     def __init__(
         self,
@@ -306,9 +339,9 @@ class EllipticalArc(Ellipse):
             )
             + center
         )
-        #         mrot = transform2d.matrix_rotate(phi)
-        #         p1 = p1.transform(mrot)
-        #         p2 = p2.transform(mrot)
+        # mrot = transform2d.matrix_rotate(phi)
+        # p1 = p1.transform(mrot)
+        # p2 = p2.transform(mrot)
         large_arc = 1 if abs(sweep_angle) > math.pi else 0
         sweep_flag = 1 if sweep_angle > 0.0 else 0
         return EllipticalArc(
@@ -373,7 +406,7 @@ class EllipticalArc(Ellipse):
         xprime, yprime = ((p1 - p2) / 2).rotate(phi)
         zz = (xprime * xprime) / (rx * rx) + (yprime * yprime) / (ry * ry)
         if zz > 1.0:
-            logger.debug('Arc radii too small.')
+            # Arc radii too small.
             z = math.sqrt(zz)
             rx = z * rx
             ry = z * ry
@@ -384,7 +417,6 @@ class EllipticalArc(Ellipse):
         t1 = (rx2 * ry2) - (rx2 * yprime2) - (ry2 * xprime2)
         t2 = (rx2 * yprime2) + (ry2 * xprime2)
         t3 = t1 / t2
-        # logger.debug('t1=%f, t2=%f, t3=%f' % (t1, t2, t3))
         t4 = math.sqrt(t3)
         cxprime = t4 * ((rx * yprime) / ry)
         cyprime = t4 * -((ry * xprime) / rx)
@@ -420,6 +452,20 @@ class EllipticalArc(Ellipse):
         # See:
         # http://atrey.karlin.mff.cuni.cz/projekty/vrr/doc/man/progman/Elliptic-arcs.html
         raise RuntimeError('not implemented.')
+
+    def to_svg_path(self, mpart: bool = True) -> str:
+        """EllipticalArc to SVG path.
+
+        A string with the SVG path 'd' attribute value
+        that corresponds to this arc.
+        """
+        dpart = (
+            f'A {self.rx} {self.ry} {self.phi} {self.large_arc}'
+            f' {self.sweep_flag} {self.p2.x} {self.p2.y}'
+        )
+        if mpart:
+            return f'M {self.p1.x} {self.p1.y} {dpart}'
+        return dpart
 
 
 def ellipse_in_parallelogram(
@@ -543,7 +589,7 @@ def intersect_circle(
     hr2 = rr1 - (dist_c1rad * dist_c1rad)
     if hr2 < 0:
         # TODO: handle this correctly - find the cases that cause this
-        logging.debug('WTF? rr1 %f  dist_c1rad %f', rr1, dist_c1rad)
+        # print('WTF? rr1 %f  dist_c1rad %f', rr1, dist_c1rad)
         return ()
     half_rad = math.sqrt(hr2)
     # Intersection points.
@@ -556,3 +602,34 @@ def intersect_circle(
     p1 = c1_center + ip1
     p2 = c1_center + ip2
     return (p1, p2)
+
+
+if const.DEBUG or TYPE_CHECKING:
+    from . import debug
+
+
+def draw_ellipse(
+    ellipse: Ellipse,
+    color: str = '#cccc99',
+    width: str | float = '1px',
+    opacity: float = 1,
+    verbose: bool = False,
+    svg_context: SVGContext | None = None,
+) -> None:
+    """Draw an SVG arc for debugging/testing."""
+    if not svg_context:
+        svg_context = debug.svg_context
+
+    if not const.DEBUG or not svg_context:
+        return
+
+    style = debug.linestyle(color=color, width=width, opacity=opacity)
+    svg_context.create_ellipse(
+        ellipse.center,
+        ellipse.rx,
+        ellipse.ry,
+        angle=ellipse.phi,
+        style=style,
+    )
+    if verbose:
+        debug.draw_point(ellipse.center, color=color)

@@ -1,59 +1,115 @@
-# -----------------------------------------------------------------------------
-# Copyright 2012-2016 Claude Zervas
-# email: claude@utlco.com
-# -----------------------------------------------------------------------------
 """Debug output support for geometry package."""
+
 from __future__ import annotations
 
+import typing
+from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Union
 
 from . import arc, bezier, debug, ellipse, line, point
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    import etree
     from typing_extensions import TypeAlias
 
 TSeg: TypeAlias = Union[
-    point.P, line.Line, arc.Arc, ellipse.Ellipse, bezier.CubicBezier
+    Sequence[float],
+    Sequence[Sequence[float]],
+    point.P,
+    line.Line,
+    arc.Arc,
+    ellipse.Ellipse,
+    bezier.CubicBezier,
 ]
 
+_POINT_LEN = 2
+_LINE_LEN = 2
+_ARC_LEN = 5
 
-def plot_path(
+
+def _is_point(seg: TSeg) -> bool:
+    return isinstance(seg, point.P) or (
+        isinstance(seg, Sequence)
+        and len(seg) == _POINT_LEN
+        and isinstance(seg[0], float)
+    )
+
+
+def draw_path(
     path: Iterable[TSeg],
     color: str = '#000000',
-    parent: etree.Element | None = None,
+    width: str | float = '1px',
+    opacity: float = 1,
+    verbose: bool = False,
 ) -> None:
-    """Debug output for paths."""
-    #     prev_seg = None
-    segnum = 1
+    """Debug SVG output for paths consisting of segments or points."""
+    lastp: point.TPoint | None = None
     for seg in path:
-        # logger.debug('\nSegment %d: %s' % (segnum, str(seg)))
-        # if prev_seg is not None and prev_seg.p2 != seg.p1:
-        #     logger.debug(
-        #         'path not continuous: p1=%s, p2=%s' % (
-        #         str(prev_seg.p2), str(seg.p1)))
-        #     prev_seg.p2.svg_plot(color='#0000ff')
-        #     seg.p1.svg_plot(color='#0000ff')
-        #     for name in inline_hint_attrs(seg):
-        #         logger.debug('%s=%s' % str(getattr(seg, name)))
-        draw_obj(seg, color=color, parent=parent)
-        # prev_seg = seg
-        segnum += 1
+        if lastp and _is_point(seg):
+            debug.draw_line(
+                (lastp, typing.cast(point.TPoint, seg)),
+                color=color,
+                width=width,
+                opacity=opacity,
+            )
+        # TODO: mark gaps in non-G0 paths
+        lastp = draw_segment(
+            seg, color=color, width=width, opacity=opacity, verbose=verbose
+        )
 
 
-def draw_obj(
-    obj: TSeg, color: str = '#c00000', parent: etree.Element = None
-) -> None:
-    """Draw a geom object."""
-    if isinstance(obj, point.P):
-        debug.draw_point(obj, color=color, parent=parent)
-    elif isinstance(obj, line.Line):
-        debug.draw_line(obj, color=color, parent=parent)
-    elif isinstance(obj, arc.Arc):
-        debug.draw_arc(obj, color=color, parent=parent)
-    elif isinstance(obj, ellipse.Ellipse):
-        debug.draw_ellipse(obj, color=color, parent=parent)
-    elif isinstance(obj, bezier.CubicBezier):
-        debug.draw_bezier(obj, color=color, parent=parent)
+def draw_segment(
+    seg: TSeg,
+    color: str = '#c00000',
+    width: str | float = '1px',
+    opacity: float = 1,
+    verbose: bool = False,
+) -> point.TPoint | None:
+    """Draw a geom object, returns the last segment point."""
+    if isinstance(seg, arc.Arc) or (
+        isinstance(seg, Sequence)
+        and len(seg) == _ARC_LEN
+        and isinstance(seg[0], Sequence)
+    ):
+        debug.draw_arc(
+            typing.cast(arc.Arc, seg),
+            color=color,
+            width=width,
+            opacity=opacity,
+            verbose=verbose,
+        )
+        return typing.cast(point.TPoint, seg[1])
+
+    if isinstance(seg, line.Line) or (
+        isinstance(seg, Sequence)
+        and len(seg) == _LINE_LEN
+        and isinstance(seg[0], Sequence)
+    ):
+        debug.draw_line(
+            typing.cast(line.TLine, seg),
+            color=color,
+            width=width,
+            opacity=opacity,
+            verbose=verbose,
+        )
+        return typing.cast(point.TPoint, seg[1])
+
+    if _is_point(seg):
+        # Not actually a segment, but just in case...
+        debug.draw_point(
+            typing.cast(point.TPoint, seg), color=color, opacity=opacity
+        )
+        return typing.cast(point.TPoint, seg)
+
+    if isinstance(seg, ellipse.EllipticalArc):
+        ellipse.draw_ellipse(
+            seg, color=color, width=width, opacity=opacity, verbose=verbose
+        )
+        return seg.p2
+
+    if isinstance(seg, bezier.CubicBezier):
+        bezier.draw_bezier(
+            seg, color=color, width=width, opacity=opacity, verbose=verbose
+        )
+        return seg.p2
+
+    return None

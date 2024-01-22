@@ -2,6 +2,7 @@
 
 Includes biarc approximation.
 """
+
 from __future__ import annotations
 
 import math
@@ -15,12 +16,14 @@ from .line import Line
 from .point import P, TPoint
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
 
+    from inkext.svg import SVGContext
     from typing_extensions import Self
 
     from .ellipse import Ellipse, EllipticalArc
     from .transform2d import TMatrix
+
 
 # pylint: disable=invalid-name
 
@@ -378,32 +381,6 @@ class CubicBezier(tuple[P, P, P, P]):
         """
         return [self.point_at(t) for t in self.find_extrema()]
 
-    #         extrema = []
-    #         # Get the quadratic coefficients
-    #         v_a = 3 * (-self.p1 + (3 * self.c1) - (3 * self.c2) + self.p2)
-    #         v_b = 6 * (self.p1 - (2 * self.c1) + self.c2)
-    #         v_c = 3 * (self.c1 - self.p1)
-    #         # Discriminent
-    #         disc_x = v_b.x * v_b.x - 4 * v_a.x * v_c.x
-    #         disc_y = v_b.y * v_b.y - 4 * v_a.y * v_c.y
-    #         if disc_x >= 0:
-    #             disc_sqrt = math.sqrt(disc_x)
-    #             t1 = (-v_b.x + disc_sqrt) / (2 * v_a.x)
-    #             if t1 > 0 and t1 < 1:
-    #                 extrema.append(self.point_at(t1))
-    #             t2 = (-v_b.x - disc_sqrt) / (2 * v_a.x)
-    #             if t2 > 0 and t2 < 1:
-    #                 extrema.append(self.point_at(t2))
-    #         if disc_y >= 0:
-    #             disc_sqrt = math.sqrt(disc_y)
-    #             t3 = (-v_b.y + disc_sqrt) / (2 * v_a.y)
-    #             if t3 > 0 and t3 < 1:
-    #                 extrema.append(self.point_at(t3))
-    #             t4 = (-v_b.y - disc_sqrt) / (2 * v_a.y)
-    #             if t4 > 0 and t4 < 1:
-    #                 extrema.append(self.point_at(t4))
-    #         return extrema
-
     def find_extrema(self) -> list[float]:
         """Find the extremities of this curve.
 
@@ -473,11 +450,6 @@ class CubicBezier(tuple[P, P, P, P]):
             + 6 * (t - t2) * (self.c2 - self.c1)
             + 3 * t2 * (self.p2 - self.c2)
         )
-
-    #         return (self.p1 * ((2 * t - t2 - 1) * 3) +
-    #                 self.c1 * ((3 * t2 - 4 * t + 1) * 3) +
-    #                 self.c2 * (t * (2 - 3 * t) * 3) +
-    #                 self.p2 * (t2 * 3) )
 
     def derivative2(self, t: float) -> P:
         """Calculate the 2nd derivative of this curve at `t`.
@@ -607,7 +579,6 @@ class CubicBezier(tuple[P, P, P, P]):
 
         # Or if the curve is basically a straight line then return a Line.
         if self.flatness() < line_flatness:
-            # logger.debug('curve->line: flatness=%f' % self.flatness())
             return [
                 Line(self.p1, self.p2),
             ]
@@ -620,9 +591,6 @@ class CubicBezier(tuple[P, P, P, P]):
             # since sub-curves shouldn't have any inflections (right?).
             curves = self.subdivide_inflections()
             if len(curves) > 1:
-                # logger.debug(
-                #    'found inflections - subdividing %d' % len(curves)
-                # )
                 biarcs = []
                 for curve in curves:
                     sub_biarcs = curve.biarc_approximation(
@@ -644,7 +612,9 @@ class CubicBezier(tuple[P, P, P, P]):
             or j_arc.radius < const.EPSILON
             or j_arc.length() < const.EPSILON
         ):
-            return []
+            return [
+                Line(self.p1, self.p2),
+            ]
 
         # To make this simple for now:
         # The biarc joint J will be the intersection of the line
@@ -676,7 +646,9 @@ class CubicBezier(tuple[P, P, P, P]):
         )
         assert arc1
         assert arc2
-        assert float_eq(arc1.end_tangent_angle(), arc2.start_tangent_angle())
+        assert const.angle_eq(
+            arc1.end_tangent_angle(), arc2.start_tangent_angle()
+        )
 
         if _recurs_depth < max_depth and (
             not self._check_hausdorff(arc2, 0.5, 1.0, tolerance)
@@ -688,6 +660,14 @@ class CubicBezier(tuple[P, P, P, P]):
                 line_flatness=line_flatness,
                 _recurs_depth=_recurs_depth,
             )
+
+        # See if the biarcs can be combined into one arc if
+        # they happen to have the same radius.
+        if const.float_eq(arc1.radius, arc2.radius):
+            arc = Arc(
+                arc1.p1, arc2.p2, arc1.radius, arc1.angle * 2, arc1.center
+            )
+            return [arc]
 
         # Biarc is within tolerance or recursion limit has been reached.
         return [arc1, arc2]
@@ -799,7 +779,13 @@ class CubicBezier(tuple[P, P, P, P]):
 
     def __str__(self) -> str:
         """Concise string representation."""
-        return f'CubicBezier({self.p1} {self.c1} {self.c2} {self.p2})'
+        return f'CubicBezier({self.p1}, {self.c1}, {self.c2}, {self.p2})'
+
+    def __repr__(self) -> str:
+        """Concise string representation."""
+        return (
+            f'CubicBezier({self.p1!r}, {self.c1!r}, {self.c2!r}, {self.p2!r})'
+        )
 
     def to_svg_path(self, mpart: bool = True) -> str:
         """SVG path.
@@ -1150,7 +1136,7 @@ def smoothing_curve(  # too-many-locals
 
 
 def smooth_path(
-    path: list[Line | Arc | CubicBezier], smoothness: float = 0.5
+    path: Sequence[Line | Arc | CubicBezier], smoothness: float = 0.5
 ) -> list[CubicBezier]:
     """Create a smooth approximation of the path using Bezier curves.
 
@@ -1210,7 +1196,7 @@ def smooth_path(
     return sm_path
 
 
-def biarc_approximation(
+def path_biarc_approximation(
     path: Iterable[Line | Arc | CubicBezier],
     tolerance: float = 0.001,
     max_depth: float = 4,
@@ -1246,3 +1232,47 @@ def biarc_approximation(
             biarc_path.append(segment)
 
     return biarc_path
+
+
+if const.DEBUG or TYPE_CHECKING:
+    from . import debug
+    from .debug import draw_line, draw_point
+
+
+def draw_bezier(
+    curve: CubicBezier | Sequence[TPoint],
+    color: str = '#cccc99',
+    width: str | float = '1px',
+    opacity: float = 1,
+    verbose: bool = False,
+    svg_context: SVGContext | None = None,
+) -> None:
+    """Draw an SVG version of this curve for debugging/testing.
+
+    Draws control points, inflection points, and tangent lines.
+    """
+    if not svg_context:
+        svg_context = debug.svg_context
+
+    if not const.DEBUG or not svg_context:
+        return
+
+    p1, c1, c2, p2 = curve
+    style = debug.linestyle(color=color, width=width, opacity=opacity)
+    svg_context.create_curve(curve, style=style)
+    if verbose:
+        # Draw control points and tangents
+        draw_point(c1, color='#0000c0')
+        draw_point(c2, color='#0000c0')
+        draw_line((p1, c1))
+        draw_line((p2, c2))
+        if not isinstance(curve, CubicBezier):
+            curve = CubicBezier(*curve)
+        # Draw inflection points if any
+        t1, t2 = curve.find_inflections()
+        if t1 > 0.0:
+            draw_point(curve.point_at(t1), color='#c00000')
+        if t2 > 0.0:
+            draw_point(curve.point_at(t2), color='#c00000')
+        # Draw midpoint
+        draw_point(curve.point_at(0.5), color='#00ff00')
