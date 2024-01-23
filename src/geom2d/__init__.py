@@ -1,7 +1,3 @@
-# -----------------------------------------------------------------------------
-# Copyright 2012-2016 Claude Zervas
-# email: claude@utlco.com
-# -----------------------------------------------------------------------------
 """2D geometry package.
 
 Parts of this library where inspired by planar, a 2D geometry library for

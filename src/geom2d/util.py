@@ -1,10 +1,7 @@
-# -----------------------------------------------------------------------------#
-#    Copyright 2012-2023 Claude Zervas
-#    email: claude@utlco.com
-# -----------------------------------------------------------------------------#
 """Basic 2D utility functions."""
 from __future__ import annotations
 
+import itertools
 import math
 from typing import TYPE_CHECKING
 
@@ -12,11 +9,12 @@ from . import point
 from .const import EPSILON, TAU, float_eq
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterable, Iterator, Sequence
 
     from .arc import Arc
     from .bezier import CubicBezier
     from .line import Line
+    from .point import TPoint
 
 # print('importing util')
 # def dummy():
@@ -102,3 +100,18 @@ def reverse_path(
     for i, segment in enumerate(reversed(path)):
         rpath[i] = segment.path_reversed()
     return rpath
+
+
+def triplepoints(
+    points: Iterable[TPoint],
+) -> Iterator[tuple[TPoint, TPoint, TPoint]]:
+    """Return overlapping point triplets from *points*.
+
+    >>> list(triplewise('ABCDE'))
+    [('A', 'B', 'C'), ('B', 'C', 'D'), ('C', 'D', 'E')]
+
+    See:
+        https://github.com/more-itertools/more-itertools
+    """
+    for (a, _), (b, c) in itertools.pairwise(itertools.pairwise(points)):
+        yield a, b, c

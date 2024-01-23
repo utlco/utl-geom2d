@@ -1,7 +1,3 @@
-# -----------------------------------------------------------------------------
-# Copyright 2012-2016 Claude Zervas
-# email: claude@utlco.com
-# -----------------------------------------------------------------------------
 """Basic 2D bounding box geometry."""
 from __future__ import annotations
 

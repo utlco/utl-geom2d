@@ -1,7 +1,3 @@
-# -----------------------------------------------------------------------------
-# Copyright 2012-2023 Claude Zervas
-# email: claude@utlco.com
-# -----------------------------------------------------------------------------
 """Simple planar graph data structure."""
 from __future__ import annotations
 

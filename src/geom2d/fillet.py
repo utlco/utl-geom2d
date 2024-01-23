@@ -92,15 +92,6 @@ def _path_iter(
             yield seg
 
 
-def _poly_iter(
-    poly: Sequence[TPoint],
-) -> Iterator[Line]:
-    poly_iter = iter(poly)
-    p1 = next(poly_iter)
-    for p2 in poly_iter:
-        yield Line(p1, p2)
-
-
 def _fillet_path_iter(
     path_iter: Iterator[Line | Arc],
     radius: float,
