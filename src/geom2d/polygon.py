@@ -12,6 +12,7 @@ Some references:
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import heapq
 import itertools
@@ -20,7 +21,7 @@ from typing import TYPE_CHECKING
 
 from contrib import clipper
 
-from . import const, point
+from . import const, point, util
 from .line import Line, TLine
 from .point import P, TPoint
 
@@ -660,69 +661,104 @@ def simplify_polyline_rdp(
     return [chord.p1, chord.p2]
 
 
-def simplify_polyline_vw(points: Sequence[TPoint], tolerance: float) -> list[P]:
+def simplify_polyline_vw(
+    points: Iterable[TPoint], min_area: float
+) -> list[TPoint]:
     """Simplify a polyline.
 
     Uses Visvalingam-Whyatt algorithm.
 
     See:
-        Visvalingam, M., and Whyatt, J.D. (1992)
+        [1] Visvalingam, M., and Whyatt, J.D. (1992)
         "Line Generalisation by Repeated Elimination of Points",
         Cartographic J., 30 (1), 46 - 51
 
     Args:
         points: A sequence of polyline vertices.
-        tolerance: Line flatness tolerance.
+        min_area: Minimum point triplet triangle area to filter for.
 
     Returns:
         A list of points defining the vertices of the simplified polyline.
     """
-    # TODO: implement this...
     # https://archive.fo/Tzq2#selection-91.0-91.89
-    # https://hydra.hull.ac.uk/resources/hull:8338
+    # https://hull-repository.worktribe.com/preview/376364/000870493786962263.pdf
     # https://bost.ocks.org/mike/simplify/
-    # https://bost.ocks.org/mike/simplify/simplify.js
 
-    if len(points) < 3:
-        # Nothing to simplify...
-        return [P(p) for p in points]
-
-    # Create a min-heap based on point triangle areas
     minheap: list = []
-    ip3 = iter(points)
-    next(ip3, None)
-    p2 = next(ip3)
-    p3 = next(ip3)
-    for i, p1 in enumerate(points):
-        # Save the area and point index
-        tarea = area_triangle(p1, p2, p3)
-        ht = (tarea, i + 1)
-        heapq.heappush(minheap, ht)
-        p2 = p3
-        p3 = next(ip3)
 
-    # minheap: list = []
-    # Populate a min-heap with triangle areas
-    # p1 = points[0]
-    # p2 = points[1]
-    # for i, p3 in enumerate(points[2:]):
-    #    tarea = area_triangle(p1, p2, p3)
-    #    # A tuple with the vertex index and area of the triangle
-    #    # between it and its neighbor vertices.
-    #    ht = (tarea, i + 1)
-    #    heapq.heappush(minheap, ht)
-    #    p1 = p2
-    #    p2 = p3
+    class _Triangle:
+        p1: TPoint
+        p2: TPoint
+        p3: TPoint
+        area: float
+        index: int = 0
+        tprev: _Triangle | None = None  # pylint: disable=undefined-variable
+        tnext: _Triangle | None = None  # pylint: disable=undefined-variable
 
-    n = int(tolerance * len(points))
-    n = max(1, min(n, int(len(points) / 2)))
-    for _ in range(n):
-        # Pop off the next minimum triangle
-        ht = heapq.heappop(minheap)
-        # Replace it with a new triangle created from
-        # the neighboring points
-    raise RuntimeError('Unimplemented')
-    # return []
+        def __init__(
+            self,
+            p1: TPoint,
+            p2: TPoint,
+            p3: TPoint,
+            i: int,
+            tprev: _Triangle | None,
+        ) -> None:
+            self.p1 = p1
+            self.p2 = p2
+            self.p3 = p3
+            self.index = i
+            self.area = area_triangle(self.p1, self.p2, self.p3)
+            if tprev:
+                tprev.tnext = self
+                self.tprev = tprev
+
+        def update_area(self) -> None:
+            with contextlib.suppress(ValueError):
+                minheap.remove(self)
+            self.area = area_triangle(self.p1, self.p2, self.p3)
+            heapq.heappush(minheap, self)
+
+        def __lt__(self, other: _Triangle) -> bool:
+            return self.area < other.area
+
+    triangles: list[_Triangle] = []
+
+    # Populate a min-heap based on triangle areas and create
+    # a linked list of triangles.
+    previous_triangle: _Triangle | None = None
+    for i, (p1, p2, p3) in enumerate(util.triplepoints(points)):
+        triangle = _Triangle(p1, p2, p3, i + 1, previous_triangle)
+        triangles.append(triangle)
+        heapq.heappush(minheap, triangle)
+        previous_triangle = triangle
+
+    max_area: float = 0
+
+    while minheap:
+        triangle = heapq.heappop(minheap)
+        # Ensure that the current point cannot be eliminated without
+        # eliminating previously eliminated points.
+        # See [1] Visvalingam
+        if triangle.area < max_area:
+            triangle.area = max_area
+        else:
+            max_area = triangle.area
+
+        # Unlink the triangle
+        if triangle.tprev:
+            triangle.tprev.tnext = triangle.tnext
+            triangle.tprev.p3 = triangle.p3
+            triangle.tprev.update_area()
+
+        if triangle.tnext:
+            triangle.tnext.tprev = triangle.tprev
+            triangle.tnext.p1 = triangle.p1
+            triangle.tnext.update_area()
+
+    simpoly: list[TPoint] = [triangles[0].p1]
+    simpoly.extend([t.p2 for t in triangles if t.area > min_area])
+    simpoly.append(triangles[-1].p3)
+    return simpoly
 
 
 # def path_to_polyline(path: Sequence[Line]) -> list[P]:
