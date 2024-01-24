@@ -1,0 +1,9 @@
+#!/bin/bash
+# Dumb script to rebuild docs and push changes to github pages
+#
+git checkout gh-pages
+git merge main
+cd docsrc; make github
+git -a commit -m "update docs"
+git push origin
+git checkout main
