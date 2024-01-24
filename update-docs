@@ -4,6 +4,6 @@
 git checkout gh-pages
 git merge main
 cd docsrc; make github
-git -a commit -m "update docs"
+git commit -a -m "update docs"
 git push origin
 git checkout main

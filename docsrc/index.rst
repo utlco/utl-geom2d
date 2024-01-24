@@ -11,7 +11,7 @@ All objects (points, lines, etc) are implemented as immutable tuples.
 
 * GitHub: https://github.com/utlco/utl-geom2d
 * License: LGPL v3
-* Copyright 2010-2023 Claude Zervas
+* Copyright 2010-2024 Claude Zervas
 * :ref:`modindex`
 
 
