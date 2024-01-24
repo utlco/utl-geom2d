@@ -16,7 +16,10 @@ github:
 	@make html
 	@cp -a _build/html/. ../docs
 
-.PHONY: help Makefile
+clean:
+	@rm -r _build generated
+
+.PHONY: help clean Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
