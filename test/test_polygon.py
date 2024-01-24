@@ -28,6 +28,24 @@ POLY1 = (
 POLY1_AREA = 1.766671
 POLY1_CENTROID = (3.427692485125855, 7.23173736316392)
 
+SIMPOLY1 = [
+    (2.86579, 7.19138),
+    (2.60321, 5.60556),
+    (2.75099, 5.96077),
+    (2.89142, 5.55078),
+    (2.85855, 6.4492),
+    (3.43943, 6.91374),
+    (4.4335, 6.14409),
+    (3.50829, 7.40838),
+    (4.81146, 7.12855),
+    (3.43943, 8.18852),
+    (2.82143, 7.93781),
+    (3.22212, 7.68965),
+    (1.74289, 7.45716),
+    (2.95283, 7.5525),
+    (2.86579, 7.19138),
+]
+
 
 def test_polygon_area():
     area = polygon.area(POLY1)
@@ -49,4 +67,9 @@ def test_polygon_centroid():
 
     c = polygon.centroid(POLY1[:2])
     assert(point.P(c) == geom2d.Line(POLY1[0], POLY1[1]).midpoint())
+
+def test_simplify_vw():
+    simpoly = polygon.simplify_polyline_vw(POLY1, min_area=.05)
+    assert simpoly == SIMPOLY1
+    # TODO: calculate proper test results
 
