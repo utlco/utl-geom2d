@@ -1,10 +1,11 @@
 """Basic 2D line/segment geometry."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from . import const
+from . import const, util
 
 # from .box import Box
 from .point import P, TPoint
@@ -584,12 +585,12 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             True if the two line segments are coicindent otherwise False.
         """
         # Compare both directions
-        if isinstance(other, Sequence):
+        if isinstance(other, Sequence) and len(self) == len(other):
             return bool(
                 (self.p1 == other[0] and self.p2 == other[1])
                 or (self.p1 == other[1] and self.p2 == other[0])
             )
-        raise ValueError
+        return False
 
     def __hash__(self) -> int:
         """Create a hash value for this line segment.
@@ -606,14 +607,26 @@ class Line(tuple[P, P]):  # noqa: SLOT001
         """Precise string representation."""
         return f'Line({self.p1!r}, {self.p2!r})'
 
-    def to_svg_path(self, mpart: bool = True) -> str:
-        """Convert this line to an SVG path.
+    def to_svg_path(
+        self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
+    ) -> str:
+        """Line to SVG path string.
+
+        Args:
+            scale: Scale factor. Default is 1.
+            add_prefix: Prefix with the command prefix if True.
+            add_move: Prefix with M command if True.
 
         Returns:
             A string with the SVG path 'd' attribute
             that corresponds with this line.
         """
-        dpart = f'L {self.p2.x} {self.p2.y}'
-        if mpart:
-            return f'M {self.p1.x} {self.p1.y} ' + dpart
-        return dpart
+        ff = util.float_formatter()
+
+        prefix = 'L ' if add_prefix or add_move else ''
+        if add_move:
+            p1 = self.p1 * scale
+            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+
+        p2 = self.p2 * scale
+        return f'{prefix}{ff(p2.x)},{ff(p2.y)}'

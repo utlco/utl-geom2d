@@ -1,7 +1,10 @@
+"""Test geom2d.polygon module."""
+
+from __future__ import annotations
 
 import geom2d
-from geom2d import const, polygon, point
-from inkext import geomsvg
+from geom2d import const, point, polygon
+from geom2d.point import P
 
 TOLERANCE = 1e-6
 POLY1 = (
@@ -46,30 +49,51 @@ SIMPOLY1 = [
     (2.86579, 7.19138),
 ]
 
+LINE = [(1.6504, 1.8223), (5.2148, 0.8864)]
+STROKE_TO_PATH = [[
+    P(5.151309919, 0.644596341),
+    P(5.278290081, 1.128203659),
+    P(1.713890081, 2.064103659),
+    P(1.586909919, 1.580496341),
+    P(5.151309919, 0.644596341),
+]]
 
-def test_polygon_area():
+
+def test_polygon_area() -> None:
+    """Test polygon.area function."""
     area = polygon.area(POLY1)
-    assert(const.float_eq(area, polygon.area(POLY1[:-1]), tolerance=TOLERANCE))
+    assert const.float_eq(area, polygon.area(POLY1[:-1]), tolerance=TOLERANCE)
     area_r = polygon.area(reversed(POLY1))
-    assert(area < 0) # winding direction
-    assert(area_r > 0) # winding direction
-    assert(const.float_eq(area_r, polygon.area(list(reversed(POLY1))[:-1]), tolerance=TOLERANCE))
-    assert(const.float_eq(abs(area), area_r, tolerance=TOLERANCE))
-    assert(const.float_eq(abs(area), POLY1_AREA, tolerance=TOLERANCE))
+    assert area < 0  # winding direction
+    assert area_r > 0  # winding direction
+    assert const.float_eq(
+        area_r, polygon.area(list(reversed(POLY1))[:-1]), tolerance=TOLERANCE
+    )
+    assert const.float_eq(abs(area), area_r, tolerance=TOLERANCE)
+    assert const.float_eq(abs(area), POLY1_AREA, tolerance=TOLERANCE)
 
 
-def test_polygon_centroid():
+def test_polygon_centroid() -> None:
+    """Test polygon.centroid function."""
     c = polygon.centroid(POLY1)
-    assert(point.P(c) == point.P(POLY1_CENTROID))
+    assert point.P(c) == point.P(POLY1_CENTROID)
 
     c = polygon.centroid(POLY1[:1])
-    assert(point.P(c) == point.P(POLY1[0]))
+    assert point.P(c) == point.P(POLY1[0])
 
     c = polygon.centroid(POLY1[:2])
-    assert(point.P(c) == geom2d.Line(POLY1[0], POLY1[1]).midpoint())
+    assert point.P(c) == geom2d.Line(POLY1[0], POLY1[1]).midpoint()
 
-def test_simplify_vw():
-    simpoly = polygon.simplify_polyline_vw(POLY1, min_area=.05)
+
+def test_simplify_vw() -> None:
+    """Test polygon.simplify_polyline_vw function."""
+    simpoly = polygon.simplify_polyline_vw(POLY1, min_area=0.05)
     assert simpoly == SIMPOLY1
     # TODO: calculate proper test results
 
+
+def test_stroke_to_path() -> None:
+    """Test polygon.stroke_to_path function."""
+    paths = polygon.poly_stroke_to_path(LINE, 0.5)
+    assert len(paths) == 1
+    assert paths == STROKE_TO_PATH

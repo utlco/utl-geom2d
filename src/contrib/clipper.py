@@ -2443,6 +2443,8 @@ def _OffsetInternal(
     endtype=EndType.Square,
     limit=0.0,
 ):
+    sinA = 0
+
     def _DoSquare(pt):
         # see offset_triginometry.svg in the documentation folder ...
         dx = math.tan(

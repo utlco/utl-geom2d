@@ -15,7 +15,6 @@ from __future__ import annotations
 import contextlib
 import functools
 import heapq
-import itertools
 import math
 from typing import TYPE_CHECKING
 
@@ -27,6 +26,21 @@ from .point import P, TPoint
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+
+# pylint: disable=ungrouped-imports
+try:
+    from itertools import (  # type: ignore [attr-defined]
+        pairwise,
+    )
+except ImportError:
+    from itertools import tee
+
+    def pairwise(iterable: Iterable) -> Iterable:  # type: ignore [no-redef]
+        """Implement itertools.pairwise for python < 3.10."""
+        a, b = tee(iterable)
+        next(b, None)
+        return zip(a, b)
+
 
 # TODO: refactor functions to allow iterable instead of Sequence
 
@@ -240,7 +254,7 @@ def area(vertices: Iterable[TPoint]) -> float:
 
     a = 0.0
     startp: TPoint | None = None
-    for p1, p2 in itertools.pairwise(vertices):
+    for p1, p2 in pairwise(vertices):
         # Keep track of the start point in case polygon is not closed
         if not startp:
             startp = p1
@@ -413,9 +427,11 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
 
     Args:
         vertices: Polygon vertices.
-        lineseg: A line possibly intersecting the polygon. A 2-tuple of line
-            end points, each a 2-tuple ``((x1, y1), (x2, y2))``.
-        edge_ok: Intersection considered if endpoint lies on polygon edge.
+        lineseg: A line possibly intersecting the polygon.
+            A sequence of two line end points, of the form
+            ``((x1, y1), (x2, y2))``.
+        edge_ok: Intersection considered if segment endpoint lies
+            on polygon edge.
 
     Returns:
         A list of one or more interior line segments that intersect
@@ -530,10 +546,37 @@ def is_closed(vertices: Sequence[TPoint]) -> bool:
 #
 
 
+def poly_stroke_to_path(
+    poly: Sequence[TPoint],
+    stroke_width: float,
+    jointype: clipper.JoinType = clipper.JoinType.Miter,
+    endtype: clipper.EndType = clipper.EndType.Butt,
+    limit: float = 0.0,
+) -> list[list[P]]:
+    """Convert a stroke (line + width) to a path.
+
+    Args:
+        poly: A polyline as a list of 2-tuple vertices.
+        stroke_width: Stroke width.
+        offset: The amount to offset (can be negative).
+        jointype: The type of joins for offset vertices.
+        endtype: The type of end caps.
+        limit: The max distance to a offset vertice before it
+            will be squared off.
+
+    If the stroke is a closed polygon then two closed sub-paths will be returned,
+    allowing a fillable SVG entity defined by an inner and outer polygon..
+    Otherwise a single closed path.
+    """
+    return offset_polyline(
+        poly, stroke_width / 2, jointype=jointype, endtype=endtype, limit=limit
+    )
+
+
 def offset_polygons(
     poly: Sequence[TPoint],
     offset: float,
-    jointype: clipper.JoinType = clipper.JoinType.Square,
+    jointype: clipper.JoinType = clipper.JoinType.Miter,
     limit: float = 0.0,
 ) -> list[list[P]]:
     """Offset a polygon by *offset* amount.
@@ -560,7 +603,55 @@ def offset_polygons(
     limit *= mult
     clipper_poly = poly2clipper(poly)
     clipper_offset_polys = clipper.OffsetPolygons(
-        (clipper_poly,), offset, jointype=jointype, limit=limit
+        [
+            clipper_poly,
+        ],
+        offset,
+        jointype=jointype,
+        limit=limit,
+    )
+    return [clipper2poly(p) for p in clipper_offset_polys]
+
+
+def offset_polyline(
+    poly: Sequence[TPoint],
+    offset: float,
+    jointype: clipper.JoinType = clipper.JoinType.Miter,
+    endtype: clipper.EndType = clipper.EndType.Butt,
+    limit: float = 0.0,
+) -> list[list[P]]:
+    """Offset a polyline by *offset* amount.
+
+    This is also called polygon buffering.
+
+    See:
+        http://www.angusj.com/delphi/clipper.php
+
+    Args:
+        poly: A polyline as a list of 2-tuple vertices.
+        offset: The amount to offset (can be negative).
+        jointype: The type of joins for offset vertices.
+        endtype: The type of end caps for polylines.
+        limit: The max distance to a offset vertice before it
+            will be squared off.
+
+    Returns:
+        Zero or more offset polygons as a list of 2-tuple vertices.
+        If the specified offset cannot be performed for the input polygon
+        an empty list will be returned.
+    """
+    mult = 10**const.EPSILON_PRECISION
+    offset *= mult
+    limit *= mult
+    clipper_poly = poly2clipper(poly)
+    clipper_offset_polys = clipper.OffsetPolyLines(
+        [
+            clipper_poly,
+        ],
+        offset,
+        jointype=jointype,
+        endtype=endtype,
+        limit=limit,
     )
     return [clipper2poly(p) for p in clipper_offset_polys]
 
@@ -772,13 +863,13 @@ def simplify_polyline_vw(
 
 
 def length(polyline: Sequence[TPoint]) -> float:
-    """The total length of a polyline."""
-    d = 0.0
-    p1 = polyline[0]
-    for p2 in polyline[1:]:
-        d += math.hypot(p1[0] - p2[0], p1[1] - p2[1])
-        p1 = p2
-    return d
+    """The total length of a polyline/polygon."""
+    return float(
+        sum(
+            math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+            for p1, p2 in pairwise(polyline)
+        )
+    )
 
 
 def is_inside(polygon1: Sequence[TPoint], polygon2: Iterable[TPoint]) -> bool:

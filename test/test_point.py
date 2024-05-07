@@ -11,6 +11,22 @@ from geom2d.point import P
 # Epsilon minus a tiny amount
 EPSILON_MINUS = EPSILON - sys.float_info.epsilon  # (EPSILON / 1000)
 
+P1 = P(60, 40)
+CCW_PT = [
+    P(120, 90),
+    P(20, 90),
+    P(0, 100),
+    P(-50, 140),
+    P(-50, 40),
+    P(-40, 10),
+    P(-30, -10),
+]
+CW_PT = [
+    P(-30, -30),
+    P(30, -30),
+    P(40, -10),
+]
+
 
 def test_misc() -> None:
     """Test misc point methods.
@@ -59,6 +75,16 @@ def test_misc() -> None:
         assert float_eq(ulen * p2.x / p2u.x, p2.length())
 
 
+def test_is_ccw() -> None:
+    """Test P.is_ccw()."""
+    # All points in CCW_PT are CCW (left of) P1
+    for p2 in CCW_PT:
+        assert P1.is_ccw(p2)
+    # All points in CW_PT are CW (right of) P1
+    for p2 in CW_PT:
+        assert not P1.is_ccw(p2)
+
+
 def test_hash() -> None:
     """Test point hash for collisions."""
     # Big coordinate space
@@ -78,7 +104,7 @@ def _test_hash(max_hashes: int, min_xy: float, max_xy: float) -> None:
 
     hashes = set()
     for p in points:
-        h = p.__hash__()
+        h = hash(p)
         hashes.add(h)
 
     assert len(hashes) == len(points)

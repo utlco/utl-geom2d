@@ -9,20 +9,32 @@
 #
 #     cargo install typos-cli
 #
+BLACK="black -q"
+MYPY="mypy --no-error-summary"
+RUFF="ruff check"
+
+# pylint is very slow, and is largely superseded by ruff
+# which is about 100 times faster.
+# Optionally comment this out to speed things up.
+# PYLINT="pylint -E"
+
+TYPOS="typos"
+
+if [[ !"$TYPOS" || !`command -v typos` ]]
+then
+  TYPOS=
+fi
+
 TARGET="${1:-src}"
 
 Reset='\033[0m'
 UCyan='\033[4;36m'
 
-for cmd in "black -q" ruff "mypy --no-error-summary" "pylint -E"; do
-  printf "${UCyan}${cmd%% *}${Reset}\n"
-  $cmd $TARGET
+for cmd in "$BLACK" "$RUFF" "$MYPY" "$PYLINT" "$TYPOS"; do
+  if [ "$cmd" ]
+  then
+    printf "${UCyan}${cmd%% *}${Reset}\n"
+    $cmd $TARGET
+  fi
 done
 
-# Build documentation to make sure it all works
-#docutils README.rst > README.html
-
-# Run typos-cli if it's installed
-if [[ $(command -v typos) ]]; then
-  typos
-fi

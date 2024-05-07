@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import collections
 import math
-from typing import TYPE_CHECKING
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, TypeVar
 
 from . import const, polyline
 from .arc import Arc
@@ -12,12 +14,14 @@ from .line import Line
 from .point import P
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Sequence
+    from collections.abc import Iterable, Sequence
 
     from .point import TPoint
 
 if const.DEBUG:
     from . import debug, plotpath
+
+_T = TypeVar('_T')
 
 
 def fillet_path(
@@ -100,16 +104,28 @@ def _fillet_path_iter(
 ) -> Sequence[Line | Arc]:
     """Fillet a path of connected Line and Arc segments."""
     new_path: list[Line | Arc] = []
+    path_iter = PathLookahead(path_iter)
     seg1 = next(path_iter)
+    if const.DEBUG:
+        debug.draw_point(seg1.p1, color='#00ff00')
+        plotpath.draw_segment(seg1, color='#00ffff')
     for seg2 in path_iter:
+        if const.DEBUG:
+            plotpath.draw_segment(seg2, color='#00ffff')
+        # Already G1?
+        if const.float_eq(seg1.end_tangent_angle(), seg2.start_tangent_angle()):
+            new_path.append(seg1)
+            seg1 = seg2
+            continue
         new_segs = fillet_segments(seg1, seg2, radius, adjust_radius)
-        # TODO: try to simplify the path
-        # while not new_segs:
-        #    try:
-        #        seg2 = next(path_iter)
-        #    except StopIteration:
-        #        break
-        #    new_segs = fillet_segments(seg1, seg2, radius, adjust_radius)
+        # Try to connect to forward adjacent segments
+        while not new_segs:
+            seg2_a = path_iter.lookahead()
+            if not seg2_a:
+                break
+            new_segs = fillet_segments(seg1, seg2_a, radius, adjust_radius)
+            if new_segs:
+                path_iter.reset()
         if new_segs:
             new_path.extend(new_segs[:-1])
             seg1 = new_segs[-1]
@@ -154,9 +170,27 @@ def fillet_segments(
         or somehow degenerate.)
     """
     farc = create_fillet_arc(seg1, seg2, radius, adjust_radius=adjust_radius)
-    if not farc:
-        return None
+    if farc:
+        return connect_fillet(seg1, farc, seg2)
+    return None
 
+
+def connect_fillet(
+    seg1: Line | Arc,
+    farc: Arc,
+    seg2: Line | Arc,
+) -> tuple[Line | Arc, Arc, Line | Arc] | None:
+    """Connect a fillet arc between two segments.
+
+    Args:
+        seg1: First segment, an Arc or a Line.
+        farc: The fillet arc.
+        seg2: Second segment, an Arc or a Line.
+
+    Returns:
+        A tuple containing the adjusted segments and fillet arc:
+        (seg1, fillet_arc, seg2)
+    """
     new_seg1: Line | Arc
     new_seg2: Line | Arc
 
@@ -263,6 +297,8 @@ def _fillet_center_line_arc(
     seg2: Arc,
     radius: float,
 ) -> P | None:
+    if seg2.radius < radius:
+        return None
     p = P.from_polar(1, seg2.start_tangent_angle()) + seg1.p2
     offset = radius * seg1.which_side(p)
     offset_seg1 = seg1.offset(offset)
@@ -272,9 +308,10 @@ def _fillet_center_line_arc(
     )
     if intersections:
         fillet_center = intersections[0]
-    if const.DEBUG:
-        _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
-    return fillet_center
+        if const.DEBUG:
+            _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
+        return fillet_center
+    return None
 
 
 def _fillet_center_arc_line(
@@ -282,6 +319,8 @@ def _fillet_center_arc_line(
     seg2: Line,
     radius: float,
 ) -> P | None:
+    if seg1.radius < radius:
+        return None
     p = P.from_polar(1, seg1.end_tangent_angle()) + seg1.p2
     offset = radius * seg2.which_side(p)
     offset_seg1 = seg1.offset(offset * seg1.direction())
@@ -291,9 +330,10 @@ def _fillet_center_arc_line(
     )
     if intersections:
         fillet_center = intersections[0]
-    if const.DEBUG:
-        _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
-    return fillet_center
+        if const.DEBUG:
+            _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
+        return fillet_center
+    return None
 
 
 def _fillet_center_arc_arc(
@@ -301,15 +341,18 @@ def _fillet_center_arc_arc(
     seg2: Arc,
     radius: float,
 ) -> P | None:
+    if seg1.radius < radius or seg2.radius < radius:
+        return None
     offset = radius * -seg1.which_side_angle(seg2.start_tangent_angle())
     offset_seg1 = seg1.offset(offset * seg1.direction())
     offset_seg2 = seg2.offset(offset * seg2.direction())
     intersections = offset_seg1.intersect_arc(offset_seg2, on_arc=True)
     if intersections:
         fillet_center = intersections[0]
-    if const.DEBUG:
-        _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
-    return fillet_center
+        if const.DEBUG:
+            _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
+        return fillet_center
+    return None
 
 
 def _adjusted_radius(
@@ -348,3 +391,58 @@ def _debug_draw_farc_endpoints(fp1: TPoint | None, fp2: TPoint | None) -> None:
         debug.draw_point(fp1, color='#ff0080')
     if fp2:
         debug.draw_point(fp2, color='#ff0080')
+
+
+_marker = object()
+
+
+class PathLookahead(Iterator[_T]):
+    """Wrap an iterator to allow lookahead."""
+
+    _source: Iterator[_T]
+    _cache: collections.deque[_T]
+    _maxlen: int | None
+
+    def __init__(self, iterable: Iterable, maxlen: int | None = None) -> None:
+        """Constructor."""
+        self._source = iter(iterable)
+        self._cache = collections.deque(maxlen=maxlen)
+        self._maxlen = maxlen
+
+    def __iter__(self) -> PathLookahead:
+        """iter()."""
+        return self
+
+    def __bool__(self) -> bool:
+        """bool()."""
+        try:
+            self.lookahead()
+        except StopIteration:
+            return False
+        return True
+
+    def __next__(self) -> _T:
+        """Advance iterator and return next object."""
+        if self._cache:
+            return self._cache.popleft()
+
+        return next(self._source)
+
+    def lookahead(self) -> _T | None:
+        """Return the next item and cache it.
+
+        Return ``default`` if there are no items left. If ``default`` is not
+        provided, raise ``StopIteration``.
+
+        """
+        if len(self._cache) == self._maxlen:
+            return None
+        try:
+            self._cache.append(next(self._source))
+        except StopIteration:
+            return None
+        return self._cache[-1]
+
+    def reset(self) -> None:
+        """Reset lookahead cache."""
+        self._cache.clear()

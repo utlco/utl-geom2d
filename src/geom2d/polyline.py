@@ -18,8 +18,8 @@ from .point import P, TPoint
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-TPolyline: TypeAlias = Iterable[TPoint]
-TPolypath: TypeAlias = Iterable[TLine]
+TPolyLine: TypeAlias = Sequence[TPoint]
+TPolyPath: TypeAlias = Sequence[TLine]
 
 # pylint: disable=ungrouped-imports
 try:
@@ -36,7 +36,7 @@ except ImportError:
         return zip(a, b)
 
 
-def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterator[TPoint]:
+def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterator[P]:
     """Convert a polypath to a polyline.
 
     Args:
@@ -47,9 +47,9 @@ def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterator[TPoint]:
     """
     p2: TPoint | None = None
     for p1, p2 in polypath:  # noqa: B007
-        yield p1
+        yield P(p1)
     if p2:
-        yield p2
+        yield P(p2)
 
 
 def polyline_to_polypath(polyline: Iterable[TPoint]) -> Iterator[Line]:
@@ -64,16 +64,37 @@ def polyline_to_polypath(polyline: Iterable[TPoint]) -> Iterator[Line]:
     return starmap(Line, pairwise(polyline))
 
 
-def is_closed(polypath: Sequence[TLine]) -> bool:
+def polypath_is_closed(polypath: Sequence[TLine]) -> bool:
     """True if polypath is a closed polygon."""
     return bool(polypath[0][0] == polypath[-1][1])
 
 
-def length(polypath: Iterable[TLine]) -> float:
+def polypath_length(polypath: Iterable[TLine]) -> float:
     """Total cumulative length of polypath."""
     return float(
         sum(math.hypot(s[1][0] - s[0][0], s[1][1] - s[0][1]) for s in polypath)
     )
+
+
+def polyline_length(polyline: Iterable[TPoint]) -> float:
+    """Total cumulative length of polyline."""
+    return float(
+        sum(
+            math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+            for p1, p2 in pairwise(polyline)
+        )
+    )
+
+
+def polyline_length_to(polyline: Iterable[TPoint], p: TPoint) -> float:
+    """Distance along polyline from start point to a point on the polyline."""
+    length: float = 0
+    for p1, p2 in pairwise(polyline):
+        seg = Line(p1, p2)
+        if seg.point_on_line(p, segment=True):
+            return length + seg.p1.distance(p)
+        length += seg.length()
+    return length  # Default is total length of polyline
 
 
 def closest_point(
@@ -111,7 +132,7 @@ def closest_point(
             if dnorm < d_alt:
                 closest_p_alt = p_normal_alt
                 d_alt = dnorm
-    return closest_p if closest_p else closest_p_alt
+    return closest_p or closest_p_alt
 
 
 def _normal_projection_point(p1: P, p2: P, p: P) -> tuple[P | None, P | None]:
@@ -143,7 +164,7 @@ def is_inside(polypath1: Iterable[TLine], polypath2: Iterable[TLine]) -> bool:
     return False
 
 
-def segment_intersects(polyline: TPolyline, segment: Line) -> bool:
+def segment_intersects(polyline: Iterable[TPoint], segment: Line) -> bool:
     """Return True if the segment intersects polyline."""
     for polyseg in polyline_to_polypath(polyline):
         if segment.intersection(polyseg, segment=True):

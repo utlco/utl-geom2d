@@ -1,4 +1,5 @@
 """Basic 2D bounding box geometry."""
+
 from __future__ import annotations
 
 import math
@@ -361,14 +362,12 @@ def _lbclip_helper(
         # line goes from inside box to outside
         if u > u_minmax[1]:
             return False
-        if u > u_minmax[0]:
-            u_minmax[0] = u
+        u_minmax[0] = max(u, u_minmax[0])
     else:
         # line goes from outside to inside
         if u < u_minmax[0]:
             return False
-        if u < u_minmax[1]:
-            u_minmax[1] = u
+        u_minmax[1] = min(u, u_minmax[1])
     return True
 
 

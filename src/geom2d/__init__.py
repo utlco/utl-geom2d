@@ -17,7 +17,7 @@ from .const import (
     set_epsilon,
 )
 from .ellipse import Ellipse, EllipticalArc
-from .line import Line
+from .line import Line, TLine
 from .point import P, TPoint
 
 # Expose some basic geometric classes and types at package level

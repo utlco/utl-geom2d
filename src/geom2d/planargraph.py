@@ -1,4 +1,5 @@
 """Simple planar graph data structure."""
+
 from __future__ import annotations
 
 import enum
@@ -313,14 +314,14 @@ class Graph:
                 self.remove_edge(edge)
         self._bottom_node = self._find_bottom_node(self.nodemap.values())
 
-    def get_face_polygons(self) -> list:
+    def get_face_polygons(self) -> list[list[P]]:
         """Graph face polygons.
 
         Returns:
             A list of face polygons.
         """
         # self._check_modified(modify=False)
-        return make_face_polygons(self.edges, self.nodemap)
+        return _make_face_polygons(self.edges, self.nodemap)
 
     def _find_bottom_node(self, nodes: Iterable[GraphNode]) -> GraphNode:
         """Find the node that has the minimum Y value.
@@ -593,6 +594,7 @@ class GraphPathBuilder:
         if curr_node.degree() == 1:
             # End of the line...
             return None
+
         # List of potential exit nodes from the current node.
         exit_node_list = []
         for exit_node in curr_node.edge_nodes:
@@ -600,6 +602,7 @@ class GraphPathBuilder:
                 edge = Line(curr_node.vertex, exit_node.vertex)
                 if edge not in visited_edges:
                     exit_node_list.append(exit_node)
+
         if exit_node_list:
             # Sort the exit nodes in order of angular distance
             # from incoming edge.
@@ -620,6 +623,7 @@ class GraphPathBuilder:
             else:
                 exit_node = exit_node_list[0]
             return exit_node
+
         return None
 
     def _dedupe_paths(
@@ -702,7 +706,9 @@ class MarkedEdgeMap:
         marked_edge.visited_left(p2)
 
 
-def make_face_polygons(edges: Iterable[Line], nodemap: TNodeMap) -> list:
+def _make_face_polygons(
+    edges: Iterable[Line], nodemap: TNodeMap
+) -> list[list[P]]:
     """Given a graph, make polygons from graph faces delineated by edges.
 
     Args:
@@ -716,7 +722,7 @@ def make_face_polygons(edges: Iterable[Line], nodemap: TNodeMap) -> list:
         # Find a free outgoing edge to start the walk
         next_node = find_free_edge_node(edgemap, start_node)
         while next_node:
-            face = make_face(edgemap, start_node, next_node)
+            face = _make_face(edgemap, start_node, next_node)
             if face and len(face) > 2:
                 faces.append(face)
             # Keep going while there are free outgoing edges....
@@ -724,7 +730,7 @@ def make_face_polygons(edges: Iterable[Line], nodemap: TNodeMap) -> list:
     return faces
 
 
-def make_face(
+def _make_face(
     edgemap: MarkedEdgeMap, start_node: GraphNode, next_node: GraphNode
 ) -> list[P] | None:
     """Create face polygon.

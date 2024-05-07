@@ -20,10 +20,11 @@ if TYPE_CHECKING:
 # at least two floating point values.
 TPoint = Sequence[float]
 
-_HASH_PRIME_X = 73856093  # X
-_HASH_PRIME_Y = 19349663  # Y
-_HASH_PRIME_Z = 83492791  # Z (unused, but for reference)
-_HASH_SIZE = 2305843009213693951  # largest Mersenne prime < sys.maxsize
+# Moved to const.py
+# _HASH_PRIME_X = 73856093  # X
+# _HASH_PRIME_Y = 19349663  # Y
+# _HASH_PRIME_Z = 83492791  # Z (unused, but for reference)
+# _HASH_SIZE = 2305843009213693951  # largest Mersenne prime < sys.maxsize
 # See: https://oeis.org/A000043 for list of Marsenne exponents.
 # _HASH_SIZE = 2147483647 # for 32bit python
 
@@ -307,6 +308,14 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         x2, y2 = other
         return self[0] * y2 - self[1] * x2
 
+    def is_ccw(self, other: TPoint) -> bool:
+        """Return True if the other vector is to the left of this vector.
+
+        That would be counter-clockwise with respect to the origin as
+        long as the sector angle is less than PI (180deg).
+        """
+        return self.cross(other) > 0
+
     def angle(self) -> float:
         """The angle of this vector relative to the x axis in radians.
 
@@ -483,9 +492,16 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         """
         return P(transform2d.matrix_apply_to_point(matrix, self))
 
-    def rotate(self, angle: float, origin: TPoint = (0.0, 0.0)) -> P:
+    def rotate(self, angle: float, origin: TPoint | None = None) -> P:
         """Return a copy of this point rotated about the origin by `angle`."""
+        if const.is_zero(angle):
+            return P(self)  # just return a copy if no actual rotation
         return self.transform(transform2d.matrix_rotate(angle, origin))
+
+    def to_svg(self, scale: float = 1) -> str:
+        """SVG string representation."""
+        ff = util.float_formatter()
+        return f'{ff(self.x * scale)},{ff(self.y * scale)}'
 
     def __eq__(self, other: object) -> bool:
         """Compare for equality.
@@ -611,7 +627,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
 
     def __repr__(self) -> str:
         """Precise string representation."""
-        return f'P({self[0]}, {self[1]})'
+        return f'P({self[0]!r}, {self[1]!r})'
 
     def __hash__(self) -> int:
         """Calculate a spatial hash value for this point.
@@ -633,13 +649,13 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         # b = int(round(self[1], const.EPSILON_PRECISION) * _HASH_PRIME_Y)
 
         repsilon: float = const.REPSILON
-        a: int = round(self[0] * repsilon * _HASH_PRIME_X)
-        b: int = round(self[1] * repsilon * _HASH_PRIME_Y)
+        a: int = round(self[0] * repsilon * const.HASH_PRIME_X)
+        b: int = round(self[1] * repsilon * const.HASH_PRIME_Y)
 
         # Modulo a large prime that is less than max signed int.
         # The intent is to minimize collisions by creating a better
         # distribution over the long integer range.
-        return (a ^ b) % _HASH_SIZE
+        return (a ^ b) % const.HASH_SIZE
 
         # TODO: Revisit Rob Jenkins or Thomas Wang's integer hash functions
         # See:

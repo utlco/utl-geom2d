@@ -2,6 +2,7 @@
 
 ====
 """
+
 from __future__ import annotations
 
 import math
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import TypeAlias
 
-# from . import const
+from . import const
 
 TMatrix: TypeAlias = tuple[
     tuple[float, float, float], tuple[float, float, float]
@@ -40,6 +41,18 @@ def is_identity_transform(m: TMatrix) -> bool:
     )
 
 
+def matrix_equals(a: TMatrix, b: TMatrix) -> bool:
+    """Return True if the matrix is the identity matrix."""
+    return (
+        const.float_eq(a[0][0], b[0][0])
+        and const.float_eq(a[0][1], b[0][1])
+        and const.float_eq(a[0][2], b[0][2])
+        and const.float_eq(a[1][0], b[1][0])
+        and const.float_eq(a[1][1], b[1][1])
+        and const.float_eq(a[1][2], b[1][2])
+    )
+
+
 def compose_transform(m1: TMatrix, m2: TMatrix) -> TMatrix:
     """Combine two matrices by multiplying them.
 
@@ -50,26 +63,26 @@ def compose_transform(m1: TMatrix, m2: TMatrix) -> TMatrix:
     Note:
         `m2` is applied before (to) `m1`
     """
-    m100 = m1[0][0]
-    m101 = m1[0][1]
-    m110 = m1[1][0]
-    m111 = m1[1][1]
+    m100, m101, m102 = m1[0]
+    m110, m111, m112 = m1[1]
+    m200, m201, m202 = m2[0]
+    m210, m211, m212 = m2[1]
     return (
         (
-            m100 * m2[0][0] + m101 * m2[1][0],
-            m100 * m2[0][1] + m101 * m2[1][1],
-            m100 * m2[0][2] + m101 * m2[1][2] + m1[0][2],
+            m100 * m200 + m101 * m210,
+            m100 * m201 + m101 * m211,
+            m100 * m202 + m101 * m212 + m102,
         ),
         (
-            m110 * m2[0][0] + m111 * m2[1][0],
-            m110 * m2[0][1] + m111 * m2[1][1],
-            m110 * m2[0][2] + m111 * m2[1][2] + m1[1][2],
+            m110 * m200 + m111 * m210,
+            m110 * m201 + m111 * m211,
+            m110 * m202 + m111 * m212 + m112,
         ),
     )
 
 
 def matrix_rotate(
-    angle: float, origin: Sequence[float] = (0.0, 0.0)
+    angle: float, origin: Sequence[float] | None = None
 ) -> TMatrix:
     """Create a transform matrix to rotate about the origin.
 
@@ -82,9 +95,11 @@ def matrix_rotate(
     """
     cos_a = math.cos(angle)
     sin_a = math.sin(angle)
-    m1 = ((cos_a, -sin_a, origin[0]), (sin_a, cos_a, origin[1]))
-    m2 = matrix_translate(-origin[0], -origin[1])
-    return compose_transform(m1, m2)
+    if origin:
+        m1 = ((cos_a, -sin_a, origin[0]), (sin_a, cos_a, origin[1]))
+        m2 = matrix_translate(-origin[0], -origin[1])
+        return compose_transform(m1, m2)
+    return ((cos_a, -sin_a, 0), (sin_a, cos_a, 0))
 
 
 def matrix_translate(x: float, y: float) -> TMatrix:
@@ -163,13 +178,27 @@ def matrix_skew_y(angle: float) -> TMatrix:
 
 
 def matrix_apply_to_point(
-    matrix: TMatrix, p: Sequence[float]
+    m: TMatrix, p: Sequence[float]
 ) -> tuple[float, float]:
     """Return a copy of `p` with the transform matrix applied to it."""
     return (
-        matrix[0][0] * p[0] + matrix[0][1] * p[1] + matrix[0][2],
-        matrix[1][0] * p[0] + matrix[1][1] * p[1] + matrix[1][2],
+        m[0][0] * p[0] + m[0][1] * p[1] + m[0][2],
+        m[1][0] * p[0] + m[1][1] * p[1] + m[1][2],
     )
+
+
+def create_transform(
+    scale: Sequence[float] = (1, 1),
+    offset: Sequence[float] = (0, 0),
+    rotate_angle: float = 0,
+    rotate_origin: Sequence[float] = (0, 0),
+) -> TMatrix:
+    """Create transform matrix."""
+    t1 = ((scale[0], 0, offset[0]), (0, scale[1], offset[1]))
+    if not const.is_zero(rotate_angle):
+        t2 = matrix_rotate(rotate_angle, origin=rotate_origin)
+        return compose_transform(t1, t2)
+    return t1
 
 
 def canonicalize_point(

@@ -28,7 +28,7 @@ TAU: float = math.pi * 2.0
 # TODO: see about using this technique to constrain constant refs
 # https://www.safaribooksonline.com/library/view/python-cookbook/0596001673/ch05s16.html
 
-EPSILON: float = 1e-09
+EPSILON: float = 1e-08
 """Tolerance value used for floating point comparisons.
 
 The maximum numeric distance between two floating point numbers for
@@ -38,13 +38,13 @@ them to be considered equal.
 EPSILON2: float = EPSILON * EPSILON
 """Handy for comparing distance**2 to avoid sqrt()."""
 
-EPSILON_PRECISION = max(0, int(round(abs(math.log10(EPSILON)))))
+EPSILON_PRECISION: int = max(0, round(abs(math.log10(EPSILON))))
 """Number of significant digits after decimal point."""
 
 REPSILON: float = 10**EPSILON_PRECISION
 """Reciprocal epsilon for int coordinate conversions, etc."""
 
-EPSILON_MINUS = EPSILON - sys.float_info.epsilon
+EPSILON_MINUS: float = EPSILON - sys.float_info.epsilon
 """Tolerence/epsilon minus a tiny bit (system float epsilon).
 
 Useful for testing float comparisons... But possibly not much else.
@@ -57,6 +57,13 @@ MAX_XY: float = sys.maxsize * EPSILON
 Numbers in this range will still work with coordinate hashing,
 float comparisons, and integer conversions.
 """
+
+HASH_PRIME_X = 73856093  # X
+HASH_PRIME_Y = 19349663  # Y
+HASH_PRIME_Z = 83492791  # Z (unused, but for reference)
+HASH_SIZE = 2305843009213693951  # largest Mersenne prime < sys.maxsize
+# See: https://oeis.org/A000043 for list of Marsenne exponents.
+"""Hash constants for hashing integers and vectors/points."""
 
 
 def set_epsilon(value: float) -> None:
@@ -76,7 +83,7 @@ def set_epsilon(value: float) -> None:
     # Recalculate "constants"
     EPSILON = float(value)
     EPSILON2 = EPSILON * EPSILON
-    EPSILON_PRECISION = max(0, int(round(abs(math.log10(value)))))
+    EPSILON_PRECISION = max(0, round(abs(math.log10(value))))
     REPSILON = 10**EPSILON_PRECISION
     MAX_XY = sys.maxsize * EPSILON
 

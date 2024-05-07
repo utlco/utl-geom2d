@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import logging
+import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -25,18 +25,18 @@ def set_svg_context(context: SVGContext) -> None:
     svg_context = context
 
 
-def write(msg: str) -> None:
-    """Just write a message using the default logger.
+def debug(*args) -> None:  # noqa: ANN002
+    """Just write a message to stderr.
 
     Dumb but useful when debugging in Inkscape.
     """
-    logging.getLogger().debug(msg)
+    print(*args, file=sys.stderr)  # noqa: T201
 
 
 def draw_point(
     point: Sequence[float],
     width: str | float = '4px',
-    color: str = '#000000',
+    color: str = '#0000ff',
     opacity: float = 1,
 ) -> None:
     """Draw a dot. Useful for debugging and testing."""

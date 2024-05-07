@@ -9,10 +9,11 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 # from geom2d import debug
-from . import const, ellipse
+from . import const, ellipse, util
 from .const import TAU
 from .line import Line
 from .point import P
@@ -27,7 +28,7 @@ if const.DEBUG:
     from . import debug
 
 
-# TODO: Refactor to generalized EllipticalArc
+# TODO: Refactor to make p2 the last element of the tuple
 class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     """Two dimensional immutable circular arc segment.
 
@@ -61,7 +62,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         """
         p1 = P(p1)
         p2 = P(p2)
-        center = P(center) if center else Arc.calc_center(p1, p2, radius, angle)
+        center = P(center) if center else calc_center(p1, p2, radius, angle)
 
         if const.DEBUG:
             # Perform a sanity check
@@ -69,7 +70,10 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             d2 = p2.distance(center)
             # Check for consistent radius
             if not const.float_eq(d1, d2):
-                raise ValueError(
+                debug.draw_point(p1, color='#ff0000')
+                debug.draw_point(p2, color='#00ff00')
+                debug.draw_point(center, color='#ffff00')
+                debug.debug(
                     'Bad arc: '
                     f'd1={d1} != d2={d2}, '
                     f'p1={p1} p2={p2} radius={radius} center={center} '
@@ -77,16 +81,17 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
                 )
             assert const.float_eq(d1, radius)
             assert -TAU < angle < TAU
-            if not const.float_eq(abs(angle), abs(center.angle2(p1, p2))):
-                debug.draw_point(p1, color='#ff0000')
-                debug.draw_point(p2, color='#00ff00')
-                debug.draw_point(center, color='#ffff00')
-                raise ValueError(
-                    'Bad arc: '
-                    f'angle={angle} != {center.angle2(p1, p2)} '
-                    f'p1={p1} p2={p2} radius={radius} center={center} '
-                    f'd1={d1} d2={d2}'
-                )
+            # this test only works for angle < +-PI
+            # if not const.float_eq(abs(angle), abs(center.angle2(p1, p2))):
+            #    debug.draw_point(p1, color='#ff0000')
+            #    debug.draw_point(p2, color='#00ff00')
+            #    debug.draw_point(center, color='#ffff00')
+            #    debug.debug(
+            #        'Bad arc: '
+            #        f'angle={angle} != {center.angle2(p1, p2)} '
+            #        f'p1={p1} p2={p2} radius={radius} center={center} '
+            #        f'd1={d1} d2={d2}'
+            #    )
 
         return super().__new__(
             cls,
@@ -150,45 +155,6 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         if reverse:
             return Arc(p2, p1, radius, -angle)
         return Arc(p1, p2, radius, angle)
-
-    @staticmethod
-    def calc_center(p1: TPoint, p2: TPoint, radius: float, angle: float) -> P:
-        """Calculate the center point of an arc.
-
-        Given two endpoints, the radius, and a central angle.
-
-        This method is static so that it can be used by __new__.
-
-        Args:
-            p1: Start point
-            p2: End point
-            radius: Radius of arc
-            angle: The arc's central angle
-
-        Returns:
-            The center point as a tuple (x, y).
-
-        See:
-            Thanks to Christian Blatter for this elegant solution:
-            - https://people.math.ethz.ch/~blatter/
-            - http://math.stackexchange.com/questions/27535/how-to-find-center-of-an-arc-given-start-point-end-point-radius-and-arc-direc
-        """
-        p1, p2 = P(p1), P(p2)
-        if p1 == p2:  # Points coinciedent?
-            return p1
-        chord = Line(p1, p2)
-        # distance between start and endpoint
-        chord_len = chord.length()
-        # Determine which side the arc center is
-        sign = 1 if angle > 0 else -1
-        # determine mid-point
-        midp = chord.midpoint()
-        # distance from center to midpoint
-        c2m = math.sqrt((radius * radius) - ((chord_len * chord_len) / 4))
-        # calculate the center point
-        center_x = midp.x - (sign * c2m * ((p2.y - p1.y) / chord_len))
-        center_y = midp.y + (sign * c2m * ((p2.x - p1.x) / chord_len))
-        return P(center_x, center_y)
 
     @property
     def p1(self) -> P:
@@ -469,19 +435,22 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         """The point at the middle of the arc segment."""
         return self.point_at(0.5)
 
-    def subdivide(self, mu: float) -> tuple[Arc, Arc] | tuple[Arc]:
+    def subdivide_at(self, mu: float) -> tuple[Arc, Arc] | tuple[Arc]:
         """Subdivide this arc at unit distance :mu: from the start point.
 
         Args:
-            mu: Unit distance along central arc from first point.
+            mu: Unit distance along central arc from first point,
+                where EPSILON < `mu` < 1.
 
         Returns:
             A tuple containing one or two Arc objects.
-            If `mu` is zero or 1 then a tuple containing just
-            this arc is returned.
+            If `mu` is out of range (ie. EPSILON >= mu >= 1)
+            a ValueError raised.
         """
-        if mu < const.EPSILON or mu >= 1.0:
+        if const.EPSILON > mu >= 1.0:
+            raise ValueError
             return (self,)
+        # print('mu:', mu, self.angle, abs(self.angle) * mu)
         return self.subdivide_at_angle(abs(self.angle) * mu)
 
     def subdivide_at_angle(self, angle: float) -> tuple[Arc, Arc] | tuple[Arc]:
@@ -489,6 +458,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
 
         At the point on this arc given
         by the specified positive arc angle (0-2pi) from the start point.
+        The angle is relative to the angle of the first point.
 
         Args:
             angle: A central angle the arc start point, in radians.
@@ -498,10 +468,13 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             angle is zero or greater than this arc's angle then
             a tuple containing just this arc will be returned.
         """
-        if angle < const.EPSILON or angle >= self.angle:
+        if const.EPSILON > angle >= abs(self.angle):
             return (self,)
         angle2 = abs(self.angle) - angle
-        p: P = self.point_at_angle(angle)  # type: ignore [assignment]
+        p: P | None = self.point_at_angle(angle)
+        if not p:
+            # This should never happen after angle range is checked.
+            raise ValueError
         if self.angle < 0:
             angle = -angle
             angle2 = -angle2
@@ -536,7 +509,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         Returns:
             The point on this arc given the specified angle from
             the start point of the arc segment. If ``segment`` is True
-            and the point would lie outside the segment then None.
+            and the point would lie outside the arc segment then None.
             Otherwise,
             if `angle` is negative return the first point, or
             if `angle` is greater than the central angle then return the
@@ -589,6 +562,28 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         if intersections:
             return intersections[0]
         return None
+
+    def point_inside(self, p: TPoint) -> bool:
+        """Test if point is inside the arc or not.
+
+        Args:
+            p: Point (x, y) to test.
+
+        Returns:
+            True if the point is inside the arc, otherwise False.
+        """
+        pp = P(p) - self.center
+        d2 = pp.x**2 + pp.y**2
+        r2 = self.radius**2
+        if d2 < r2:
+            # Is inside circle, point must be within arc.
+            pp1 = self.p1 - self.center
+            pp2 = self.p2 - self.center
+            # TODO: test this, it's probably backwards
+            if self.angle < 0:
+                return pp1.cross(pp) < 0 > pp2.cross(pp)
+            return pp1.cross(pp) > 0 < pp2.cross(pp)
+        return False
 
     def intersect_line(  # too-many-locals
         self, line: Line, on_arc: bool = False, on_line: bool = False
@@ -694,21 +689,131 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     def __repr__(self) -> str:
         """Convert this Arc to a string."""
         return (
-            f'Arc({self.p1!r}, {self.p2!r}, {self.radius}, '
-            f'{self.angle}, {self.center!r})'
+            f'Arc({self.p1!r}, {self.p2!r}, {self.radius!r}, '
+            f'{self.angle!r}, {self.center!r})'
         )
 
-    def to_svg_path(self, mpart: bool = True) -> str:
-        """Arc to SVG path.
+    def __eq__(self, other: object) -> bool:
+        """Compare arcs for geometric equality.
 
-        A string with the SVG path 'd' attribute value
+        Returns:
+            True if the two arcs are the same.
+        """
+        if isinstance(other, Sequence) and len(self) == len(other):
+            return bool(
+                self.p1 == other[0]
+                and self.p2 == other[1]
+                and const.float_eq(self.radius, other[2])
+                and const.angle_eq(self.angle, other[3])
+                and self.center == other[4]
+            )
+        return False
+
+    def __hash__(self) -> int:
+        """Create a hash value for this arc."""
+        rhash = round(self.radius * const.REPSILON * const.HASH_PRIME_X)
+        ahash = round(self.angle * const.REPSILON * const.HASH_PRIME_X)
+        rahash = (rhash ^ ahash) % const.HASH_SIZE
+        return hash(self.p1) ^ hash(self.p2) ^ hash(self.center) ^ rahash
+
+    def to_svg_path(
+        self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
+    ) -> str:
+        """Arc to SVG path string.
+
+        See:
+            https://www.w3.org/TR/SVG11/paths.html#PathDataEllipticalArcCommands
+
+        Args:
+            scale: Scale factor. Default is 1.
+            add_prefix: Prefix with the command prefix if True.
+                Default is True.
+            add_move: Prefix with M command if True.
+                Default is False.
+
+        A string with the SVG path 'd' attribute values
         that corresponds to this arc.
         """
-        sweep_flag = 0 if self.angle < 0 else 1
-        dpart = (
-            f'A {self.radius} {self.radius} 0.0 0'
-            f' {sweep_flag} {self.p2.x} {self.p2.y}'
+        large_arc_flag = 1 if abs(self.angle) > math.pi else 0
+        sweep_flag = 1 if self.angle > 0 else 0
+
+        ff = util.float_formatter()
+
+        prefix = 'A ' if add_prefix or add_move else ''
+        if add_move:
+            p1 = self.p1 * scale
+            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+
+        radius = self.radius * scale
+        p2 = self.p2 * scale
+        return (
+            f'{prefix}{ff(radius)},{ff(radius)}'
+            f' 0 {large_arc_flag} {sweep_flag}'
+            f' {ff(p2.x)},{ff(p2.y)}'
         )
-        if mpart:
-            return f'M {self.p1.x} {self.p1.y} ' + dpart
-        return dpart
+
+
+def calc_center(p1: TPoint, p2: TPoint, radius: float, angle: float) -> P:
+    """Calculate the center point of an arc.
+
+    Given two endpoints, the radius, and a central angle.
+
+    This method is static so that it can be used by __new__.
+
+    Args:
+        p1: Start point
+        p2: End point
+        radius: Radius of arc
+        angle: The arc's central angle
+
+    Returns:
+        The center point as a tuple (x, y).
+
+    See:
+        https://math.stackexchange.com/questions/27535/how-to-find-center-of-an-arc-given-start-point-end-point-radius-and-arc-direc
+    """
+    d = P(p1).distance(p2)
+
+    # On the odd chance the points are on the equator
+    if const.float_eq(d, 2 * radius):
+        return Line(p1, p2).midpoint()
+
+    #print(f'radius={radius} d={d} 2r={2 * radius}')
+    r = (2 * radius) / d
+    t = math.sqrt(r * r - 1)
+
+    sign = 1 if angle > 0 else -1
+    if abs(angle) > math.pi:  # Reverse if large arc
+        sign = -sign
+
+    x0, y0 = p1
+    x1, y1 = p2
+    x = (x0 + x1) / 2 + sign * ((y0 - y1) / 2) * t
+    y = (y0 + y1) / 2 - sign * ((x0 - x1) / 2) * t
+
+    return P(x, y)
+
+    # Vector method (broken)
+    # p1, p2 = P(p1), P(p2)
+    # if p1 == p2:  # Points coincident?
+    #    return p1   # Then just pretend the points are the center...
+
+    # chord = Line(p1, p2)
+
+    # distance between endpoints
+    # chord_len = chord.length()
+
+    # determine mid-point
+    # midp = chord.midpoint()
+
+    # distance from center to midpoint
+    # c2m = math.sqrt((radius * radius) - ((chord_len * chord_len) / 4))
+
+    # Determine which side the arc center is
+    # sign = 1 if angle > 0 else -1
+
+    # calculate the center point
+    # center_x = midp.x - (sign * c2m * ((p2.y - p1.y) / chord_len))
+    # center_y = midp.y + (sign * c2m * ((p2.x - p1.x) / chord_len))
+
+    # return P(center_x, center_y)

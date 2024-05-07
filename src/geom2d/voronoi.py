@@ -786,8 +786,7 @@ class _PriorityQueue:
         bucket = max(int(hashval * self.hashsize), 0)
         if bucket >= self.hashsize:
             bucket = self.hashsize - 1
-        if bucket < self.minidx:
-            self.minidx = bucket
+        self.minidx = min(bucket, self.minidx)
         return bucket
 
 

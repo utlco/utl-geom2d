@@ -78,6 +78,18 @@ method-rgx = "(?x)^(?:(?P<exempt>_[a-z0-9_]+__|(test|assert)_*[A-Z0-9][a-zA-Z0-9
 [tool.ruff]
 preview = true
 target-version = "py39"
+output-format = "concise"
+extend-exclude = [
+    "venv",
+    "contrib",
+    "tmp",
+    "saved",
+    "unused",
+    "docs",
+]
+
+
+[tool.ruff.lint]
 select = [
     "A",
     "B",
@@ -152,22 +164,13 @@ extend-ignore = [
     "PLR0914", # Too many local variables
     #"PTH123", # Use Path.open
     "TRY003", # long msg outside exc cls
-    "TRY400", # Use `logging.exception` instead of `logging.error`
+    #"TRY400", # Use `logging.exception` instead of `logging.error`
 ]
 
-extend-exclude = [
-    "venv",
-    "contrib",
-    "tmp",
-    "saved",
-    "unused",
-    "docs",
-]
-
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401"]
 
 [tool.mypy]

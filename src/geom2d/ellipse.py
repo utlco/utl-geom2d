@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
-from . import const
+from . import const, util
 from .line import Line
 from .point import P, TPoint
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from inkext.svg import SVGContext
     from transform2d import TMatrix
 
+# TODO: refactor to named tuple in order to be orthogonal to other geom types
 
 class Ellipse:
     """Two dimensional ellipse.
@@ -40,14 +41,14 @@ class Ellipse:
     p2: P
     rx: float
     ry: float
-    center: P
     phi: float
+    center: P
 
     def __init__(
         self,
         center: TPoint,
         rx: float,
-        ry: float | None = None,
+        ry: float,
         phi: float = 0.0,
     ) -> None:
         """Create a new Ellipse.
@@ -55,28 +56,24 @@ class Ellipse:
         Args:
             center: The center of the ellipse.
             rx: Semi-major axis length.
-            ry: Semi-minor axis length. Default is `rx` if None.
+            ry: Semi-minor axis length.
             phi: Rotation angle of the ellipse.
 
         Raises:
             ValueError: If rx or ry is zero.
         """
-        self.center = P(center)
-        rx = abs(rx)
-        ry = rx if ry is None else abs(ry)
         if const.is_zero(rx) or const.is_zero(ry):
             raise ValueError
-        if const.float_eq(rx, ry):
-            self.phi = 0.0
-        elif rx < ry:
-            # Rotate to normalize
-            self.phi = phi + math.pi / 2
-        else:
-            self.phi = phi
-        # Normalize axes
-        self.rx = max(rx, ry)
-        self.ry = min(rx, ry)
 
+        # Note: This is possibly redundant...
+        rx, ry, phi = _normalize_axis(rx, ry, phi)
+
+        self.rx = rx
+        self.ry = ry
+        self.phi = phi
+        self.center = P(center)
+
+        # Defaults for paths
         self.p1 = self.point_at(0)
         self.p2 = self.p1
 
@@ -102,7 +99,7 @@ class Ellipse:
         """True if this ellipse is a circle."""
         return const.float_eq(self.rx, self.ry)
 
-    def theta2t(self, theta: float) -> float:
+    def angle_to_theta(self, angle: float) -> float:
         """Compute parametric angle from geometric angle.
 
         Args:
@@ -113,10 +110,10 @@ class Ellipse:
             `t` - the parametric angle - 0 < `t` < 2*PI.
         """
         if self.is_circle():
-            return theta
-        return math.atan2(math.sin(theta) / self.ry, math.cos(theta) / self.rx)
+            return angle
+        return math.atan2(math.sin(angle) / self.ry, math.cos(angle) / self.rx)
 
-    def pointt(self, p: TPoint) -> float:
+    def point_to_theta(self, p: TPoint) -> float:
         """Compute `t` given a point on the ellipse.
 
         Args:
@@ -126,7 +123,7 @@ class Ellipse:
             `t` - the parametric angle - 0 < `t` < 2*PI.
         """
         theta = self.center.angle2(self.point_at(0), p)
-        return self.theta2t(theta)
+        return self.angle_to_theta(theta)
 
     def point_at(self, t: float) -> P:
         """Return the point on the ellipse at `t`.
@@ -139,6 +136,9 @@ class Ellipse:
         Returns:
             A point at `t`
         """
+        return _point_at(self.center, self.rx, self.ry, self.phi, t)
+        p = P(self.rx * math.cos(t), self.ry * math.sin(t))
+        return p.rotate(self.phi) + self.center
         cos_theta = math.cos(self.phi)
         sin_theta = math.sin(self.phi)
         cos_t = math.cos(t)
@@ -167,7 +167,7 @@ class Ellipse:
         return ((xrx * xrx) + (yry * yry) - 1) < 0
 
     def all_points_inside(self, points: Iterable[TPoint]) -> bool:
-        """Return True if all the given points are inside this circle."""
+        """Return True if all the given points are inside this ellipse."""
         return all(self.point_inside(p) for p in points)
 
     def focus(self) -> float:
@@ -235,18 +235,38 @@ class Ellipse:
         # http://atrey.karlin.mff.cuni.cz/projekty/vrr/doc/man/progman/Elliptic-arcs.html
         raise RuntimeError('not implemented.')
 
-    def _init_axes(self, rx: float, ry: float, phi: float) -> None:
-        """Make sure major and minor axes are not reversed."""
+
+def _normalize_axis(rx, ry, phi) -> tuple[float, float, float]:
+        """Normalize radii and axis so rx is always semi-major."""
         rx = abs(rx)
         ry = abs(ry)
-        if rx < ry:
-            self.rx = ry
-            self.ry = rx
-            self.phi = phi + math.pi / 2
-        else:
-            self.rx = rx
-            self.ry = ry
-            self.phi = phi
+
+        if const.float_eq(rx, ry):
+            rx = ry # Mitigate possible float artifacts
+        elif rx < ry:
+            # Normalize semi-major axis
+            rx, ry = ry, rx
+            phi += math.pi / 2
+
+        if const.is_zero(phi):
+            phi = 0 # Remove possible float artifacts
+
+        return rx, ry, phi
+
+
+def _point_at(center: TPoint, rx: float, ry: float, phi: float, t: float) -> P:
+    """Return the point on the ellipse at `t`.
+
+    This is the parametric function for this ellipse.
+
+    Args:
+        t: Parametric angle - 0 < t < 2*PI.
+
+    Returns:
+        A point at `t`
+    """
+    p = P(rx * math.cos(t), ry * math.sin(t))
+    return p.rotate(phi) + center
 
 
 class EllipticalArc(Ellipse):
@@ -258,21 +278,21 @@ class EllipticalArc(Ellipse):
 
     start_angle: float
     sweep_angle: float
-    large_arc: float
-    sweep_flag: float
+    large_arc: int
+    sweep_flag: int
 
     def __init__(
         self,
-        center: TPoint,
         p1: TPoint,
         p2: TPoint,
         rx: float,
         ry: float,
-        start_angle: float,
-        sweep_angle: float,
+        phi: float,
         large_arc: int,
         sweep_flag: int,
-        phi: float = 0.0,
+        start_angle: float,
+        sweep_angle: float,
+        center: TPoint,
     ) -> None:
         """Create an elliptical arc.
 
@@ -285,16 +305,16 @@ class EllipticalArc(Ellipse):
             p2: The end point of the arc.
             rx: Semi-major axis length.
             ry: Semi-minor axis length.
-            start_angle: Parametric start angle of the arc.
-            sweep_angle: Parametric sweep angle of the arc.
+            phi: Rotation angle from coordinate system X axis, in radians,
+                of the semi-major axis.  Default is 0.
             large_arc: The large arc flag.
                 0 if the arc span is less than or equal to 180 degrees,
                 or 1 if the arc span is greater than 180 degrees.
             sweep_flag: The sweep flag.
                 0 if the line joining center to arc sweeps through
                 decreasing angles, or 1 if it sweeps through increasing angles.
-            phi: Rotation angle from coordinate system X axis, in radians,
-                of the ellipse.  Default is 0.
+            start_angle: Parametric start angle of the arc.
+            sweep_angle: Parametric sweep angle of the arc.
         """
         super().__init__(center, rx, ry, phi)
         # self.center = center
@@ -313,9 +333,9 @@ class EllipticalArc(Ellipse):
         center: TPoint,
         rx: float,
         ry: float,
+        phi: float,
         start_angle: float,
         sweep_angle: float,
-        phi: float = 0.0,
     ) -> EllipticalArc:
         """Create an elliptical arc from center parameters.
 
@@ -331,30 +351,22 @@ class EllipticalArc(Ellipse):
         Returns:
             An EllipticalArc
         """
-        p1 = P(rx * math.cos(start_angle), ry * math.sin(start_angle)) + center
-        p2 = (
-            P(
-                rx * math.cos(start_angle + sweep_angle),
-                ry * math.sin(start_angle + sweep_angle),
-            )
-            + center
-        )
-        # mrot = transform2d.matrix_rotate(phi)
-        # p1 = p1.transform(mrot)
-        # p2 = p2.transform(mrot)
+        rx, ry, phi = _normalize_axis(rx, ry, phi)
+        p1 = _point_at(center, rx, ry, phi, start_angle)
+        p2 = _point_at(center, rx, ry, phi, start_angle + sweep_angle)
         large_arc = 1 if abs(sweep_angle) > math.pi else 0
         sweep_flag = 1 if sweep_angle > 0.0 else 0
         return EllipticalArc(
-            center,
             p1,
             p2,
             rx,
             ry,
-            start_angle,
-            sweep_angle,
+            phi,
             large_arc,
             sweep_flag,
-            phi,
+            start_angle,
+            sweep_angle,
+            center,
         )
 
     @staticmethod
@@ -363,10 +375,10 @@ class EllipticalArc(Ellipse):
         p2: TPoint,
         rx: float,
         ry: float,
+        phi: float,
         large_arc: int,
         sweep_flag: int,
-        phi: float = 0.0,
-    ) -> EllipticalArc:
+    ) -> EllipticalArc | None:
         """Create an elliptical arc from SVG-style endpoint parameters.
 
         This will correct out of range parameters as per SVG spec.
@@ -374,18 +386,17 @@ class EllipticalArc(Ellipse):
         calculated.
 
         See:
-            https://www.w3.org/TR/SVG11/implnote.html#ArcSyntax
-            https://www.w3.org/TR/SVG11/implnote.html#ArcOutOfRangeParameters
+            https://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
 
         Args:
             p1: The start point of the arc.
             p2: The end point of the arc.
             rx: Semi-major axis length.
             ry: Semi-minor axis length.
-            large_arc: The large arc flag.
-            sweep_flag: The sweep flag.
             phi: The angle in radians from the X axis to the
-                semi-major axis of the ellipse. Default is 0.
+                semi-major axis of the ellipse.
+            large_arc: The large arc flag (0 or 1).
+            sweep_flag: The sweep flag (0 or 1).
 
         Returns:
             An EllipticalArc.
@@ -393,57 +404,97 @@ class EllipticalArc(Ellipse):
         Raises:
             ValueError: If rx or ry is zero.
         """
+        # print(p1, p2, rx, ry, large_arc, sweep_flag, math.degrees(phi))
         p1 = P(p1)
         p2 = P(p2)
-        # If the semi-major of semi-minor axes are 0 then
+
+        # If the semi-major or semi-minor axes are 0 then
         # this should really be a straight line.
-        if const.is_zero(rx) or const.is_zero(ry):
-            raise ValueError
-        rx = abs(rx)
-        ry = abs(ry)
-        # Ensure radii are large enough and correct if not.
-        # As per SVG standard section F.6.6.
-        xprime, yprime = ((p1 - p2) / 2).rotate(phi)
-        zz = (xprime * xprime) / (rx * rx) + (yprime * yprime) / (ry * ry)
-        if zz > 1.0:
-            # Arc radii too small.
-            z = math.sqrt(zz)
-            rx = z * rx
-            ry = z * ry
+        if p1 == p2 or const.is_zero(rx) or const.is_zero(ry):
+            return None
+
+        # Relative midpoint of chord
+        midp = (p1 - p2) / 2
+
+        # Normalize radii and axis so rx is always semi-major
+        rx, ry, phi = _normalize_axis(rx, ry, phi)
+
+        if const.is_zero(phi):
+            phi = 0 # Remove possible float artifacts
+            sin_phi = 0.0
+            cos_phi = 1.0
+            xprime = midp[0]
+            yprime = midp[1]
+        else:
+            # F.6.5.1 rotate chord midpoint coordinates to line up with phi
+            sin_phi = math.sin(phi)
+            cos_phi = math.cos(phi)
+            xprime = cos_phi * midp[0] + sin_phi * midp[1]
+            yprime = -sin_phi * midp[0] + cos_phi * midp[1]
+
+        # Precompute squares
         rx2 = rx * rx
         ry2 = ry * ry
         xprime2 = xprime * xprime
         yprime2 = yprime * yprime
+
+        # F.6.6 Ensure radii are large enough and correct if not.
+        lam2 = xprime2 / rx2 + yprime2 / ry2
+        if lam2 > 1.0:
+            # Arc radii too small, so scale up
+            lam = math.sqrt(lam2)
+            rx = lam * rx
+            ry = lam * ry
+            rx2 = rx * rx
+            ry2 = ry * ry
+
+        # F.6.5.2 Compute center-prime
         t1 = (rx2 * ry2) - (rx2 * yprime2) - (ry2 * xprime2)
         t2 = (rx2 * yprime2) + (ry2 * xprime2)
-        t3 = t1 / t2
-        t4 = math.sqrt(t3)
-        cxprime = t4 * ((rx * yprime) / ry)
-        cyprime = t4 * -((ry * xprime) / rx)
-        if large_arc == sweep_flag:
-            cxprime = -cxprime
-            cyprime = -cyprime
-        midp = (p1 + p2) / 2
-        center = P(cxprime, cyprime).rotate(-phi) + midp
-        vx1 = (xprime - cxprime) / rx
-        vy1 = (yprime - cyprime) / rx
-        vx2 = (-xprime - cxprime) / rx
-        vy2 = (-yprime - cyprime) / rx
+        t3 = math.sqrt(t1 / t2)
+        sign = -1 if large_arc == sweep_flag else 1
+        cxprime = sign * t3 * ((rx * yprime) / ry)
+        cyprime = sign * t3 * -((ry * xprime) / rx)
+
+        # F.6.5.3 Compute center
+        if phi == 0:
+            center = P(cxprime, cyprime) + (p1 + p2) / 2
+        else:
+            # Rotate to semi-major axis
+            cx = cos_phi * cxprime + -sin_phi * cyprime
+            cy = sin_phi * cxprime + cos_phi * cyprime
+            center = P(cx, cy) + (p1 + p2) / 2
+
+        # F.6.5.4 Compute start angle and sweep angles
+        # Create unit vectors
+        v1 = P(1, 0)
+        v2 = P((xprime - cxprime) / rx, (yprime - cyprime) / ry)
+        v3 = P((-xprime - cxprime) / rx, (-yprime - cyprime) / ry)
         origin = P(0.0, 0.0)
-        start_angle = origin.angle2((1.0, 0.0), (vx1, vy1))
-        sweep_angle = origin.angle2((vx1, vy1), (vx2, vy2))
+
+        # F.6.5.5 Compute start angle (theta)
+        # start_angle = math.acos(v1.dot(v2))
+        start_angle = origin.angle2(v1, v2)
+
+        # F.6.5.6 Compute sweep angle (lambda)
+        # sweep_angle = math.acos(v2.dot(v3))
+        sweep_angle = util.normalize_angle(origin.angle2(v2, v3))
+        if not sweep_flag and sweep_angle > 0:
+            sweep_angle -= math.pi * 2
+        elif sweep_flag and sweep_angle < 0:
+            sweep_angle += math.pi * 2
 
         return EllipticalArc(
-            center,
             p1,
             p2,
             rx,
             ry,
-            start_angle,
-            sweep_angle,
+            phi,
             large_arc,
             sweep_flag,
-            phi,
+            start_angle,
+            sweep_angle,
+            center,
         )
 
     def transform(self, _matrix: TMatrix) -> EllipticalArc:
@@ -453,19 +504,91 @@ class EllipticalArc(Ellipse):
         # http://atrey.karlin.mff.cuni.cz/projekty/vrr/doc/man/progman/Elliptic-arcs.html
         raise RuntimeError('not implemented.')
 
-    def to_svg_path(self, mpart: bool = True) -> str:
-        """EllipticalArc to SVG path.
+    def to_svg_path(
+        self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
+    ) -> str:
+        """EllipticalArc to SVG path string.
+
+        See:
+            https://www.w3.org/TR/SVG11/paths.html#PathDataEllipticalArcCommands
+
+        Args:
+            scale: Scale factor. Default is 1.
+            add_prefix: Prefix with the command prefix if True.
+                Default is True.
+            add_move: Prefix with M command if True.
+                Default is False.
 
         A string with the SVG path 'd' attribute value
         that corresponds to this arc.
         """
-        dpart = (
-            f'A {self.rx} {self.ry} {self.phi} {self.large_arc}'
-            f' {self.sweep_flag} {self.p2.x} {self.p2.y}'
+        ff = util.float_formatter()
+
+        prefix = 'A ' if add_prefix or add_move else ''
+        if add_move:
+            p1 = self.p1 * scale
+            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+
+        rx = self.rx * scale
+        ry = self.ry * scale
+        p2 = self.p2 * scale
+        return (
+            f'{prefix}{ff(rx)},{ff(ry)} {ff(math.degrees(self.phi))}'
+            f' {self.large_arc} {self.sweep_flag} {ff(p2.x)},{ff(p2.y)}'
         )
-        if mpart:
-            return f'M {self.p1.x} {self.p1.y} {dpart}'
-        return dpart
+
+    def __str__(self) -> str:
+        """Convert this EllipticalArc to a readable string."""
+        ff = util.float_formatter()
+        return (
+            f'EllipticalArc({self.p1}, {self.p2}, '
+            f'{ff(self.rx)}, {ff(self.ry)}, {ff(self.phi)}, '
+            f'{self.large_arc}, {self.sweep_flag}, '
+            f'{ff(self.start_angle)}, {ff(self.sweep_angle)}, '
+            f'{self.center})'
+        )
+
+    def __repr__(self) -> str:
+        """Convert this EllipticalArc to a readable string."""
+        ff = util.float_formatter()
+        return (
+            f'EllipticalArc({self.p1!r}, {self.p2!r}, '
+            f'{self.rx!r}, {self.ry!r}, {self.phi!r}, '
+            f'{self.large_arc}, {self.sweep_flag}, '
+            f'{self.start_angle!r}, {self.sweep_angle!r}, '
+            f'{self.center!r})'
+        )
+
+    def __eq__(self, other: object) -> bool:
+        """Compare arcs for geometric equality.
+
+        Returns:
+            True if the two arcs are the same.
+        """
+        if isinstance(other, EllipticalArc):
+            return bool(
+                self.p1 == other.p1
+                and self.p2 == other.p2
+                and const.float_eq(self.rx, other.rx)
+                and const.float_eq(self.ry, other.ry)
+                and const.angle_eq(self.phi, other.phi)
+                and self.center == other.center
+                and self.large_arc == other.large_arc
+                and self.sweep_flag == other.sweep_flag
+                and const.angle_eq(self.start_angle, other.start_angle)
+                and const.angle_eq(self.sweep_angle, other.sweep_angle)
+            )
+        return False
+
+    def __hash__(self) -> int:
+        """Create a hash value for this arc."""
+        # Just use SVG components
+        rxh = round(self.rx * const.REPSILON * const.HASH_PRIME_X)
+        ryh = round(self.ry * const.REPSILON * const.HASH_PRIME_Y)
+        ah = round(self.phi * const.REPSILON * const.HASH_PRIME_X)
+        fh = self.large_arc << 1 & self.sweep_flag
+        rehash = (rxh ^ ryh ^ ah ^ fh) % const.HASH_SIZE
+        return hash(self.p1) ^ hash(self.p2) ^ hash(self.center) ^ rehash
 
 
 def ellipse_in_parallelogram(
@@ -602,6 +725,87 @@ def intersect_circle(
     p1 = c1_center + ip1
     p2 = c1_center + ip2
     return (p1, p2)
+
+
+def intersect_circle_line(  # too-many-locals
+    center: TPoint, radius: float, line: Line, on_line: bool = False
+) -> list[P]:
+    """Find the intersection (if any) of a circle and a Line.
+
+    See:
+        http://mathworld.wolfram.com/Circle-LineIntersection.html
+
+    Args:
+        center: Center of circle.
+        radius: Radius of circle.
+        line: A line defined by two points (as a 2-tuple of 2-tuples).
+        on_line: If True the intersection(s) must lie on the line
+            segment between its two end points. Default is False.
+
+    Returns:
+        A list containing zero, one, or two intersections as point
+        (x, y) tuples.
+    """
+    # pylint: disable=too-many-locals
+    lp1 = line.p1 - center
+    lp2 = line.p2 - center
+    dx = lp2.x - lp1.x
+    dy = lp2.y - lp1.y
+    dr2 = dx * dx + dy * dy
+    # Determinant
+    det = lp1.cross(lp2)
+    # Discrimanant
+    dsc = ((radius * radius) * dr2) - (det * det)
+    intersections = []
+    if const.is_zero(dsc):
+        # Line is tangent so one intersection
+        intersections.append(line.normal_projection_point(center))
+    elif dsc > 0:
+        # Two intersections - find them
+        sgn = -1 if dy < 0 else 1
+        dscr = math.sqrt(dsc)
+        x1 = ((det * dy) + ((sgn * dx) * dscr)) / dr2
+        x2 = ((det * dy) - ((sgn * dx) * dscr)) / dr2
+        y1 = ((-det * dx) + (abs(dy) * dscr)) / dr2
+        y2 = ((-det * dx) - (abs(dy) * dscr)) / dr2
+        p1 = P(x1, y1) + center
+        p2 = P(x2, y2) + center
+        if not on_line or line.point_on_line(p1):
+            intersections.append(p1)
+        if not on_line or line.point_on_line(p2):
+            intersections.append(p2)
+    return intersections
+    # pylint: enable=too-many-locals
+
+
+def center_to_endpoints(
+    center: P,
+    rx: float,
+    ry: float,
+    phi: float,
+    start_angle: float,
+    sweep_angle: float,
+) -> tuple[P, P, float, float]:
+    """Convert center parameterization to endpoint parameterization.
+
+    Returns:
+        A tuple containing:
+        (p1, p2, large_arc_flag, sweep_flag)
+    """
+    t = P(rx * math.cos(start_angle), ry * math.sin(start_angle))
+    if not const.is_zero(phi):
+        t = t.rotate(phi)
+    p1 = t + center
+    t = P(
+        rx * math.cos(start_angle + sweep_angle),
+        ry * math.sin(start_angle + sweep_angle),
+    )
+    if not const.is_zero(phi):
+        t = t.rotate(phi)
+    p2 = t + center
+    large_arc_flag = 1 if abs(sweep_angle) > math.pi else 0
+    sweep_flag = 1 if sweep_angle > 0 else 0
+    return p1, p2, large_arc_flag, sweep_flag
 
 
 if const.DEBUG or TYPE_CHECKING:

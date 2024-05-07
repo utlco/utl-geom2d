@@ -1,12 +1,13 @@
 """Basic 2D utility functions."""
+
 from __future__ import annotations
 
 import itertools
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from . import point
-from .const import EPSILON, TAU, float_eq
+from .const import EPSILON, EPSILON_PRECISION, TAU, float_eq
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sequence
@@ -19,6 +20,26 @@ if TYPE_CHECKING:
 # print('importing util')
 # def dummy():
 #     print('dummy')
+
+
+def float_formatter(
+    scale: float = 1, precision: float | None = None
+) -> Callable[[float], str]:
+    """Get a float formatter for a specified precision.
+
+    Args:
+        scale: Scaling factor (for SVG). Default is 1.
+        precision: The max number of digits after the decimal point.
+
+    Returns:
+        A function that formats a float to the specified precision
+        and strips off trailing zeros and decimal point when necessary.
+    """
+    if precision is None:
+        # Assign here instead of kwarg because theoretically mutable
+        precision = EPSILON_PRECISION
+    fmt = f'{{:.{precision}f}}'
+    return lambda x: fmt.format(x * scale).rstrip('0').rstrip('.')
 
 
 def normalize_angle(angle: float, center: float = math.pi) -> float:

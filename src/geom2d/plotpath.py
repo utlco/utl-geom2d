@@ -36,7 +36,7 @@ def _is_point(seg: TSeg) -> bool:
 
 def draw_path(
     path: Iterable[TSeg],
-    color: str = '#000000',
+    color: str = '#ff0000',
     width: str | float = '1px',
     opacity: float = 1,
     verbose: bool = False,

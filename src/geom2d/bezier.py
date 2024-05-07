@@ -8,10 +8,11 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
-from . import const, transform2d
+from . import const, transform2d, util
 from .arc import Arc
 from .box import Box
 from .const import float_eq, is_zero
+from .ellipse import Ellipse, EllipticalArc
 from .line import Line
 from .point import P, TPoint
 
@@ -21,8 +22,11 @@ if TYPE_CHECKING:
     from inkext.svg import SVGContext
     from typing_extensions import Self
 
-    from .ellipse import Ellipse, EllipticalArc
     from .transform2d import TMatrix
+
+if const.DEBUG or TYPE_CHECKING:
+    from . import debug
+    from .debug import draw_line, draw_point
 
 
 # pylint: disable=invalid-name
@@ -787,20 +791,34 @@ class CubicBezier(tuple[P, P, P, P]):
             f'CubicBezier({self.p1!r}, {self.c1!r}, {self.c2!r}, {self.p2!r})'
         )
 
-    def to_svg_path(self, mpart: bool = True) -> str:
-        """SVG path.
+    def to_svg_path(
+        self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
+    ) -> str:
+        """CubicBezier to SVG path string.
+
+        Args:
+            scale: Scale factor. Default is 1.
+            add_prefix: Prefix with the command prefix if True.
+            add_move: Prefix with M command if True.
 
         Returns:
             A string with the SVG path 'd' attribute value
             that corresponds with this curve.
         """
-        dpart = (
-            f'C {self.c1.x} {self.c1.y} {self.c2.x}'
-            f' {self.c2.y} {self.p2.x} {self.p2.y}'
+        ff = util.float_formatter()
+
+        prefix = 'C ' if add_prefix or add_move else ''
+        if add_move:
+            p1 = self.p1 * scale
+            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+
+        c1 = self.c1 * scale
+        c2 = self.c2 * scale
+        p2 = self.p2 * scale
+        return (
+            f'{prefix}{ff(c1.x)},{ff(c1.y)}'
+            f' {ff(c2.x)},{ff(c2.y)} {ff(p2.x)},{ff(p2.y)}'
         )
-        if mpart:
-            return f'M {self.p1.x} {self.p1.y} ' + dpart
-        return dpart
 
 
 def bezier_circle(
@@ -896,18 +914,26 @@ def bezier_ellipse(ellipse: Ellipse | EllipticalArc) -> list[CubicBezier]:
         A list containing one to four BezierCurves.
     """
     # See: http://www.spaceroots.org/documents/ellipse/node22.html
-    bz = []
-    t1 = getattr(ellipse, 'start_angle', 0.0)
+    if isinstance(ellipse, EllipticalArc):
+        t1 = ellipse.start_angle
+        t_end = t1 + ellipse.sweep_angle
+    else:
+        t1 = 0
+        t_end = math.pi * 2
+
+    bcurves = []
+    # Sub-divide the ellipse into PI/2 sections
     t2 = t1 + math.pi / 2
-    t_end = t1 + getattr(ellipse, 'sweep_angle', math.pi * 2)
     while t2 <= t_end:
-        bz.append(bezier_elliptical_arc(ellipse, t1, t2))
+        bcurves.append(bezier_elliptical_arc(ellipse, t1, t2))
         t1 = t2
         t2 += math.pi / 2
+
     # Create a curve for the remainder
     if t1 < t_end < t2:
-        bz.append(bezier_elliptical_arc(ellipse, t1, t_end))
-    return bz
+        bcurves.append(bezier_elliptical_arc(ellipse, t1, t_end))
+
+    return bcurves
 
 
 def bezier_elliptical_arc(
@@ -940,7 +966,9 @@ def bezier_elliptical_arc(
     p2 = ellipse.point_at(t2)
     c1 = p1 + alpha * ellipse.derivative(t1)
     c2 = p2 - alpha * ellipse.derivative(t2)
-    return CubicBezier(p1, c1, c2, p2)
+    bz = CubicBezier(p1, c1, c2, p2)
+    draw_bezier(bz, verbose=True)
+    return bz
 
 
 def bezier_sine_wave(
@@ -1234,14 +1262,9 @@ def path_biarc_approximation(
     return biarc_path
 
 
-if const.DEBUG or TYPE_CHECKING:
-    from . import debug
-    from .debug import draw_line, draw_point
-
-
 def draw_bezier(
     curve: CubicBezier | Sequence[TPoint],
-    color: str = '#cccc99',
+    color: str = '#ff0000',
     width: str | float = '1px',
     opacity: float = 1,
     verbose: bool = False,
@@ -1251,10 +1274,10 @@ def draw_bezier(
 
     Draws control points, inflection points, and tangent lines.
     """
-    if not svg_context:
+    if not svg_context and const.DEBUG:
         svg_context = debug.svg_context
 
-    if not const.DEBUG or not svg_context:
+    if not svg_context:
         return
 
     p1, c1, c2, p2 = curve
