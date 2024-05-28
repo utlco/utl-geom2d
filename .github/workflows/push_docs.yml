@@ -1,0 +1,44 @@
+name: Docs build
+
+on:
+  push:
+    branches:    
+      - main
+
+    env:
+      ACTIONS_RUNNER_DEBUG: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: "docs/"
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/_build/html/
+
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
