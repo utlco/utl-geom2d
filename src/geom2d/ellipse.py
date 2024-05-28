@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 # TODO: refactor to named tuple in order to be orthogonal to other geom types
 
+
 class Ellipse:
     """Two dimensional ellipse.
 
@@ -103,7 +104,7 @@ class Ellipse:
         """Compute parametric angle from geometric angle.
 
         Args:
-            theta: The geometrical angle from
+            angle: The geometrical angle from
                 the semi-major axis and a point on the ellipse.
 
         Returns:
@@ -236,22 +237,24 @@ class Ellipse:
         raise RuntimeError('not implemented.')
 
 
-def _normalize_axis(rx, ry, phi) -> tuple[float, float, float]:
-        """Normalize radii and axis so rx is always semi-major."""
-        rx = abs(rx)
-        ry = abs(ry)
+def _normalize_axis(
+    rx: float, ry: float, phi: float
+) -> tuple[float, float, float]:
+    """Normalize radii and axis so rx is always semi-major."""
+    rx = abs(rx)
+    ry = abs(ry)
 
-        if const.float_eq(rx, ry):
-            rx = ry # Mitigate possible float artifacts
-        elif rx < ry:
-            # Normalize semi-major axis
-            rx, ry = ry, rx
-            phi += math.pi / 2
+    if const.float_eq(rx, ry):
+        rx = ry  # Mitigate possible float artifacts
+    elif rx < ry:
+        # Normalize semi-major axis
+        rx, ry = ry, rx
+        phi += math.pi / 2
 
-        if const.is_zero(phi):
-            phi = 0 # Remove possible float artifacts
+    if const.is_zero(phi):
+        phi = 0  # Remove possible float artifacts
 
-        return rx, ry, phi
+    return rx, ry, phi
 
 
 def _point_at(center: TPoint, rx: float, ry: float, phi: float, t: float) -> P:
@@ -260,6 +263,10 @@ def _point_at(center: TPoint, rx: float, ry: float, phi: float, t: float) -> P:
     This is the parametric function for this ellipse.
 
     Args:
+        center: Ellipse center point.
+        rx: Semi-major radius.
+        ry: Semi-minor radius.
+        phi: Semi-major axis angle.
         t: Parametric angle - 0 < t < 2*PI.
 
     Returns:
@@ -420,7 +427,7 @@ class EllipticalArc(Ellipse):
         rx, ry, phi = _normalize_axis(rx, ry, phi)
 
         if const.is_zero(phi):
-            phi = 0 # Remove possible float artifacts
+            phi = 0  # Remove possible float artifacts
             sin_phi = 0.0
             cos_phi = 1.0
             xprime = midp[0]
@@ -550,7 +557,6 @@ class EllipticalArc(Ellipse):
 
     def __repr__(self) -> str:
         """Convert this EllipticalArc to a readable string."""
-        ff = util.float_formatter()
         return (
             f'EllipticalArc({self.p1!r}, {self.p2!r}, '
             f'{self.rx!r}, {self.ry!r}, {self.phi!r}, '
@@ -832,7 +838,7 @@ def draw_ellipse(
         ellipse.center,
         ellipse.rx,
         ellipse.ry,
-        angle=ellipse.phi,
+        phi=ellipse.phi,
         style=style,
     )
     if verbose:

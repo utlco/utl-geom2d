@@ -24,9 +24,10 @@ if TYPE_CHECKING:
 
     from .transform2d import TMatrix
 
-if const.DEBUG or TYPE_CHECKING:
+_DEBUG = False  # const.DEBUG
+
+if _DEBUG or TYPE_CHECKING:
     from . import debug
-    from .debug import draw_line, draw_point
 
 
 # pylint: disable=invalid-name
@@ -219,6 +220,7 @@ class CubicBezier(tuple[P, P, P, P]):
             there are no inflections, one inflection, or two inflections.
         """
         t1, t2 = self.find_inflections()
+        # debug.debug(f'inflections: t1={t1!r}, t2={t2!r}')
         if t1 > 0.0 and t2 == 0.0:
             return self.subdivide(t1)
         if t1 == 0.0 and t2 > 0.0:
@@ -291,7 +293,7 @@ class CubicBezier(tuple[P, P, P, P]):
         v3 = self.p2 - self.c2 - v1 - 2 * v2
 
         # Calculate quadratic coefficients
-        # of the form a*x**2 + b*x + c = 0
+        # of the form a*t**2 + b*t + c = 0
         a = v2.x * v3.y - v2.y * v3.x
         b = v1.x * v3.y - v1.y * v3.x
         c = v1.x * v2.y - v1.y * v2.x
@@ -304,8 +306,8 @@ class CubicBezier(tuple[P, P, P, P]):
         if abs(a2) > 0.0:  # Avoid div by zero
             # the discriminant of the quadratic eq.
             dis = b * b - 4 * a * c
-            #             if dis < 0 and not imaginary:
-            #                 return (0.0, 0.0)
+            # if dis < 0 and not imaginary:
+            #    return (0.0, 0.0)
             # When a curve has a loop the discriminant will be negative
             # so use the absolute value...
             # I can't remember how this was determined besides
@@ -320,6 +322,10 @@ class CubicBezier(tuple[P, P, P, P]):
                 root1 = 0.0
             if root2 < const.EPSILON or root2 >= (1.0 - const.EPSILON):
                 root2 = 0.0
+            # if root1 > 0:
+            #    debug.draw_point(self.point_at(root1))
+            # if root2 > 0:
+            #    debug.draw_point(self.point_at(root2))
             # If the discriminant was negative and both imaginary roots
             # are on the curve segment then the curve has a loop.
             # Otherwise if there is a single imaginary inflection
@@ -594,6 +600,9 @@ class CubicBezier(tuple[P, P, P, P]):
             # This is only required once before any recursion starts
             # since sub-curves shouldn't have any inflections (right?).
             curves = self.subdivide_inflections()
+            # if _DEBUG:
+            #    for c in curves:
+            #        draw_bezier(c, width='.5px')
             if len(curves) > 1:
                 biarcs = []
                 for curve in curves:
@@ -613,8 +622,8 @@ class CubicBezier(tuple[P, P, P, P]):
         # or too tiny.
         if (
             j_arc is None
-            or j_arc.radius < const.EPSILON
-            or j_arc.length() < const.EPSILON
+            or j_arc.radius < line_flatness  # const.EPSILON
+            or j_arc.length() < line_flatness  # const.EPSILON
         ):
             return [
                 Line(self.p1, self.p2),
@@ -650,9 +659,19 @@ class CubicBezier(tuple[P, P, P, P]):
         )
         assert arc1
         assert arc2
-        assert const.angle_eq(
-            arc1.end_tangent_angle(), arc2.start_tangent_angle()
-        )
+        if _DEBUG:
+            if not const.angle_eq(
+                arc1.end_tangent_angle(), arc2.start_tangent_angle()
+            ):
+                debug.debug(
+                    f'a1={arc1.end_tangent_angle()}, '
+                    f'a2={arc2.start_tangent_angle()}'
+                )
+                debug.draw_arc(arc1, color='#ff0000')
+                debug.draw_arc(arc2, color='#ff0000')
+            else:
+                debug.draw_arc(arc1)
+                debug.draw_arc(arc2)
 
         if _recurs_depth < max_depth and (
             not self._check_hausdorff(arc2, 0.5, 1.0, tolerance)
@@ -966,9 +985,7 @@ def bezier_elliptical_arc(
     p2 = ellipse.point_at(t2)
     c1 = p1 + alpha * ellipse.derivative(t1)
     c2 = p2 - alpha * ellipse.derivative(t2)
-    bz = CubicBezier(p1, c1, c2, p2)
-    draw_bezier(bz, verbose=True)
-    return bz
+    return CubicBezier(p1, c1, c2, p2)
 
 
 def bezier_sine_wave(
@@ -1274,10 +1291,10 @@ def draw_bezier(
 
     Draws control points, inflection points, and tangent lines.
     """
-    if not svg_context and const.DEBUG:
+    if not svg_context:
         svg_context = debug.svg_context
 
-    if not svg_context:
+    if not _DEBUG or not svg_context:
         return
 
     p1, c1, c2, p2 = curve
@@ -1285,17 +1302,17 @@ def draw_bezier(
     svg_context.create_curve(curve, style=style)
     if verbose:
         # Draw control points and tangents
-        draw_point(c1, color='#0000c0')
-        draw_point(c2, color='#0000c0')
-        draw_line((p1, c1))
-        draw_line((p2, c2))
+        debug.draw_point(c1, color='#0000c0')
+        debug.draw_point(c2, color='#0000c0')
+        debug.draw_line((p1, c1))
+        debug.draw_line((p2, c2))
         if not isinstance(curve, CubicBezier):
             curve = CubicBezier(*curve)
         # Draw inflection points if any
         t1, t2 = curve.find_inflections()
         if t1 > 0.0:
-            draw_point(curve.point_at(t1), color='#c00000')
+            debug.draw_point(curve.point_at(t1), color='#c00000')
         if t2 > 0.0:
-            draw_point(curve.point_at(t2), color='#c00000')
+            debug.draw_point(curve.point_at(t2), color='#c00000')
         # Draw midpoint
-        draw_point(curve.point_at(0.5), color='#00ff00')
+        debug.draw_point(curve.point_at(0.5), color='#00ff00')

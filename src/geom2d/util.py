@@ -6,8 +6,7 @@ import itertools
 import math
 from typing import TYPE_CHECKING, Callable
 
-from . import point
-from .const import EPSILON, EPSILON_PRECISION, TAU, float_eq
+from . import const, point
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sequence
@@ -37,7 +36,7 @@ def float_formatter(
     """
     if precision is None:
         # Assign here instead of kwarg because theoretically mutable
-        precision = EPSILON_PRECISION
+        precision = const.EPSILON_PRECISION
     fmt = f'{{:.{precision}f}}'
     return lambda x: fmt.format(x * scale).rstrip('0').rstrip('.')
 
@@ -59,7 +58,9 @@ def normalize_angle(angle: float, center: float = math.pi) -> float:
         An angle value in radians between 0 and 2 * PI if center == PI,
         otherwise a value between -PI and PI if center == 0.
     """
-    return angle - (TAU * math.floor((angle + math.pi - center) / TAU))
+    return angle - (
+        const.TAU * math.floor((angle + math.pi - center) / const.TAU)
+    )
 
 
 def calc_rotation(start_angle: float, end_angle: float) -> float:
@@ -72,15 +73,15 @@ def calc_rotation(start_angle: float, end_angle: float) -> float:
     Returns:
         Rotation amount in radians where -PI <= rotation <= PI.
     """
-    if float_eq(start_angle, end_angle):
+    if const.float_eq(start_angle, end_angle):
         return 0.0
     start_angle = normalize_angle(start_angle, 0)
     end_angle = normalize_angle(end_angle, 0)
     rotation = end_angle - start_angle
     if rotation < -math.pi:
-        rotation += TAU
+        rotation += const.TAU
     elif rotation > math.pi:
-        rotation -= TAU
+        rotation -= const.TAU
     return rotation
 
 
@@ -104,13 +105,16 @@ def segments_are_g1(
         specified tolerance. Otherwise False.
     """
     if tolerance is None:
-        tolerance = EPSILON
+        tolerance = const.EPSILON
     # G0 continuity - end points are connected
-    is_g0 = point.almost_equal(seg1.p2, seg2.p1, tolerance)
-    # G1 continuity - segment end points share tangent
-    td = seg1.end_tangent_angle() - seg2.start_tangent_angle()
-    is_g1 = abs(td) < tolerance
-    return is_g0 and is_g1
+    if point.almost_equal(seg1.p2, seg2.p1, tolerance):
+        # G1 continuity -> G0 + segment end points share tangent
+        # td = seg1.end_tangent_angle() - seg2.start_tangent_angle()
+        # return abs(td) < tolerance
+        return const.float_eq(
+            seg1.end_tangent_angle(), seg2.start_tangent_angle()
+        )
+    return False
 
 
 def reverse_path(

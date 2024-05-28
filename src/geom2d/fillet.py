@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 
     from .point import TPoint
 
-if const.DEBUG:
+_DEBUG = False  # const.DEBUG
+
+if _DEBUG:
     from . import debug, plotpath
 
 _T = TypeVar('_T')
@@ -106,11 +108,11 @@ def _fillet_path_iter(
     new_path: list[Line | Arc] = []
     path_iter = PathLookahead(path_iter)
     seg1 = next(path_iter)
-    if const.DEBUG:
+    if _DEBUG:
         debug.draw_point(seg1.p1, color='#00ff00')
         plotpath.draw_segment(seg1, color='#00ffff')
     for seg2 in path_iter:
-        if const.DEBUG:
+        if _DEBUG:
             plotpath.draw_segment(seg2, color='#00ffff')
         # Already G1?
         if const.float_eq(seg1.end_tangent_angle(), seg2.start_tangent_angle()):
@@ -264,18 +266,23 @@ def create_fillet_arc(
     fp1: P | None = None
     fp2: P | None = None
     if fillet_center:
+        # debug.draw_point(fillet_center, color='#ffff00')
         fp1 = seg1.normal_projection_point(fillet_center, segment=True)
         fp2 = seg2.normal_projection_point(fillet_center, segment=True)
-        if const.DEBUG:
-            _debug_draw_farc_endpoints(fp1, fp2)
+        if _DEBUG:
+            if fp1:
+                debug.draw_point(fp1, color='#ff0080')
+            if fp2:
+                debug.draw_point(fp2, color='#ff0080')
 
-    fillet_arc: Arc | None = None
-    if fillet_center and fp1 and fp2:
-        fillet_arc = Arc.from_two_points_and_center(fp1, fp2, fillet_center)
-        if const.DEBUG:
-            debug.draw_arc(fillet_arc, color='#ff0080')
+        # fillet_arc: Arc | None = None
+        if fp1 and fp2 and fp1 != fp2:
+            fillet_arc = Arc.from_two_points_and_center(fp1, fp2, fillet_center)
+            if _DEBUG and fillet_arc:
+                debug.draw_arc(fillet_arc, color='#ff0080')
+            return fillet_arc
 
-    return fillet_arc
+    return None
 
 
 def _fillet_center_line_line(
@@ -287,7 +294,7 @@ def _fillet_center_line_line(
     offset_seg1 = seg1.offset(offset)
     offset_seg2 = seg2.offset(offset)
     fillet_center = offset_seg1.intersection(offset_seg2, segment=True)
-    if const.DEBUG:
+    if _DEBUG:
         _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
     return fillet_center
 
@@ -308,7 +315,7 @@ def _fillet_center_line_arc(
     )
     if intersections:
         fillet_center = intersections[0]
-        if const.DEBUG:
+        if _DEBUG:
             _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
         return fillet_center
     return None
@@ -325,12 +332,14 @@ def _fillet_center_arc_line(
     offset = radius * seg2.which_side(p)
     offset_seg1 = seg1.offset(offset * seg1.direction())
     offset_seg2 = seg2.offset(-offset)
+    # debug.draw_arc(seg1, color='#0080ff')
+    # debug.draw_line(seg2, color='#0080ff')
     intersections = offset_seg1.intersect_line(
         offset_seg2, on_arc=True, on_line=True
     )
     if intersections:
         fillet_center = intersections[0]
-        if const.DEBUG:
+        if _DEBUG:
             _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
         return fillet_center
     return None
@@ -349,7 +358,7 @@ def _fillet_center_arc_arc(
     intersections = offset_seg1.intersect_arc(offset_seg2, on_arc=True)
     if intersections:
         fillet_center = intersections[0]
-        if const.DEBUG:
+        if _DEBUG:
             _debug_draw_offsets(offset_seg1, offset_seg2, fillet_center, radius)
         return fillet_center
     return None

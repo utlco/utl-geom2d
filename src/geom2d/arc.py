@@ -12,7 +12,8 @@ import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-# from geom2d import debug
+from geom2d import debug
+
 from . import const, ellipse, util
 from .const import TAU
 from .line import Line
@@ -24,7 +25,9 @@ if TYPE_CHECKING:
     from .point import TPoint
     from .transform2d import TMatrix
 
-if const.DEBUG:
+_DEBUG = False  # const.DEBUG
+
+if _DEBUG:
     from . import debug
 
 
@@ -64,7 +67,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         p2 = P(p2)
         center = P(center) if center else calc_center(p1, p2, radius, angle)
 
-        if const.DEBUG:
+        if _DEBUG:
             # Perform a sanity check
             d1 = p1.distance(center)
             d2 = p2.distance(center)
@@ -79,6 +82,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
                     f'p1={p1} p2={p2} radius={radius} center={center} '
                     f'angle={angle} center={center}'
                 )
+                raise ValueError('bad arc')
             assert const.float_eq(d1, radius)
             assert -TAU < angle < TAU
             # this test only works for angle < +-PI
@@ -101,7 +105,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     @staticmethod
     def from_two_points_and_center(
         p1: TPoint, p2: TPoint, center: TPoint, large_arc: bool = False
-    ) -> Arc:
+    ) -> Arc | None:
         """Create an Arc given two end points and a center point.
 
         Since this would be ambiguous, a hint must be given as
@@ -115,11 +119,24 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
                 large side (angle > pi). Default is False.
         """
         p1, p2, center = P(p1), P(p2), P(center)
-        radius = p1.distance(center)
-        angle = center.angle2(p1, p2)
-        if large_arc:
-            angle = (-TAU if angle < 0 else TAU) - angle
-        return Arc(p1, p2, radius, angle, center)
+        d1 = p1.distance(center)
+        d2 = p2.distance(center)
+        if const.float_eq(d1, d2):
+            angle = center.angle2(p1, p2)
+            if large_arc:
+                angle = (-TAU if angle < 0 else TAU) - angle
+            return Arc(p1, p2, (d1 + d2) / 2, angle, center)
+        if _DEBUG:
+            debug.draw_point(p1, color='#ff0000')
+            debug.draw_point(p2, color='#00ff00')
+            debug.draw_point(center, color='#ffff00')
+            debug.debug(
+                'Bad arc: '
+                f'd1={d1} != d2={d2}, '
+                f'p1={p1} p2={p2} center={center} '
+            )
+            raise ValueError('bad arc')
+        return None
 
     @staticmethod
     def from_two_points_and_tangent(
@@ -369,9 +386,12 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             v2 = self.p2 - self.center
             v3 = p - self.center
             determinant = v1.cross(v2)
-            s = v1.cross(v3) / determinant
-            t = v3.cross(v2) / determinant
-            is_inside_arc = s >= 0.0 and t >= 0.0
+            if const.is_zero(determinant):
+                is_inside_arc = False
+            else:
+                s = v1.cross(v3) / determinant
+                t = v3.cross(v2) / determinant
+                is_inside_arc = s >= 0.0 and t >= 0.0
         if is_inside_arc:
             # Distance from arc center to point.
             p2center = self.center.distance(p)
@@ -556,7 +576,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     def normal_projection_point(
         self, p: TPoint, segment: bool = False
     ) -> P | None:
-        """Normal project of point p to this arc."""
+        """Normal projection of point p to this arc."""
         ray = Line(self.center, p)
         intersections = self.intersect_line(ray, on_arc=segment)
         if intersections:
@@ -617,7 +637,11 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         intersections = []
         if const.is_zero(dsc):
             # Line is tangent so one intersection
-            intersections.append(line.normal_projection_point(self.center))
+            p1 = line.normal_projection_point(self.center)
+            if (not on_arc or self.point_on_arc(p1)) and (
+                not on_line or line.point_on_line(p1, segment=True)
+            ):
+                intersections.append(p1)
         elif dsc > 0:
             # Two intersections - find them
             sgn = -1 if dy < 0 else 1
@@ -629,12 +653,14 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             p1 = P(x1, y1) + self.center
             p2 = P(x2, y2) + self.center
             if (not on_arc or self.point_on_arc(p1)) and (
-                not on_line or line.point_on_line(p1)
+                not on_line or line.point_on_line(p1, segment=True)
             ):
+                # debug.draw_point(p1, color='#ffc0c0')
                 intersections.append(p1)
             if (not on_arc or self.point_on_arc(p2)) and (
-                not on_line or line.point_on_line(p2)
+                not on_line or line.point_on_line(p2, segment=True)
             ):
+                # debug.draw_point(p2, color='#c0c0ff')
                 intersections.append(p2)
         return intersections
         # pylint: enable=too-many-locals
@@ -778,7 +804,7 @@ def calc_center(p1: TPoint, p2: TPoint, radius: float, angle: float) -> P:
     if const.float_eq(d, 2 * radius):
         return Line(p1, p2).midpoint()
 
-    #print(f'radius={radius} d={d} 2r={2 * radius}')
+    # print(f'radius={radius} d={d} 2r={2 * radius}')
     r = (2 * radius) / d
     t = math.sqrt(r * r - 1)
 

@@ -470,6 +470,8 @@ class Line(tuple[P, P]):  # noqa: SLOT001
     def shift(self, amount: float) -> Line:
         """Shift this segment forward or backwards by `amount`.
 
+        Forward means shift in the direction P1->P2.
+
         Args:
             amount: The distance to shift the line.
                 If `amount` is less than zero
