@@ -32,10 +32,10 @@ class Ellipse:
     necessary.
 
     See:
-        https://en.wikipedia.org/wiki/Ellipse
-        http://www.spaceroots.org/documents/ellipse/
-        http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-        https://en.wikipedia.org/wiki/Eccentric_anomaly
+        - https://en.wikipedia.org/wiki/Ellipse
+        - http://www.spaceroots.org/documents/ellipse/
+        - http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+        - https://en.wikipedia.org/wiki/Eccentric_anomaly
     """
 
     p1: P
