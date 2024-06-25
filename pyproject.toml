@@ -172,6 +172,7 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401"]
+"tests/*" = ["D103", "T201", "ANN201"]
 
 [tool.mypy]
 mypy_path = "./src"
