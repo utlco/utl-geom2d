@@ -66,7 +66,7 @@ HASH_SIZE = 2305843009213693951  # largest Mersenne prime < sys.maxsize
 """Hash constants for hashing integers and vectors/points."""
 
 
-def set_epsilon(value: float) -> None:
+def set_epsilon(value: float) -> float:
     """Set the nominal tolerance for float comparisons.
 
     This updates the global constants:
@@ -77,8 +77,12 @@ def set_epsilon(value: float) -> None:
         - :py:const:`REPSILON`
         - :py:const:`MAX_XY`
 
+    Returns:
+        Previous value of EPSILON
     """
     global EPSILON, EPSILON2, EPSILON_PRECISION, REPSILON, MAX_XY
+
+    prev_epsilon = EPSILON
 
     # Recalculate "constants"
     EPSILON = float(value)
@@ -86,6 +90,8 @@ def set_epsilon(value: float) -> None:
     EPSILON_PRECISION = max(0, round(abs(math.log10(value))))
     REPSILON = 10**EPSILON_PRECISION
     MAX_XY = sys.maxsize * EPSILON
+
+    return prev_epsilon
 
 
 def float_eq1(a: float, b: float, tolerance: float | None = None) -> bool:

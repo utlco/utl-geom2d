@@ -10,6 +10,7 @@ from .arc import Arc
 from .bezier import CubicBezier
 from .box import Box
 from .const import (
+    DEBUG,
     TAU,
     float_eq,
     float_round,
