@@ -427,19 +427,18 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         return v1.cross(v2) / seglen
 
     def normal_projection(self, p: TPoint) -> float:
-        """Closest point on line described by this vector.
+        """Unit distance to normal projection of point.
 
-        The unit distance from the origin that corresponds to
+        The unit distance `mu` from the origin that corresponds to
         the projection of the specified point on to the line described by
         this vector.
 
         Args:
-            p: A vector (point) as 2-tuple (x, y).
+            p: A point as 2-tuple (x, y).
         """
         vlen2 = self.length2()
         if vlen2 < const.EPSILON2:
             return 0  # Degenerate case where the vector has zero length
-        # return P(p).dot(self) / vlen2
         return self.dot(p) / vlen2
 
     def inside_triangle(self, a: TPoint, b: TPoint, c: TPoint) -> bool:
@@ -502,6 +501,14 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         """SVG string representation."""
         ff = util.float_formatter()
         return f'{ff(self.x * scale)},{ff(self.y * scale)}'
+
+    def copysign(self, v: tuple[float, float]) -> P:
+        """Return a new point with x,y having the same sign as `v`.
+
+        Where p.x value is magnitude self.x with sign of v[0],
+        and p.y value is magnitude self.y with sign of v[1].
+        """
+        return P(math.copysign(self.x, v[0]), math.copysign(self.y, v[1]))
 
     def __eq__(self, other: object) -> bool:
         """Compare for equality.
