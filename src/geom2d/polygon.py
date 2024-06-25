@@ -364,7 +364,7 @@ def centroid(vertices: Sequence[TPoint]) -> P:
 
 
 def point_inside(
-    vertices: Sequence[TPoint], p: TPoint, edge_ok: bool = False
+    polygon: Sequence[TPoint], p: TPoint, edge_ok: bool = False
 ) -> bool:
     """Test if point is inside a closed polygon.
 
@@ -391,7 +391,7 @@ def point_inside(
 
 
     Args:
-        vertices: polygon vertices. A list of 2-tuple (x, y) points.
+        polygon: polygon vertices. A list of 2-tuple (x, y) points.
         p: Point to test.
         edge_ok: Point is considered inside if it lies on a vertex
             or an edge segment.
@@ -402,17 +402,17 @@ def point_inside(
     p_is_inside = False
     x, y = p
     j = -1
-    for i in range(len(vertices)):
+    for i in range(len(polygon)):
         # Special case test for point on a vertex or on an edge,
         # in which case it's considered "inside".
         if edge_ok and (
-            point.almost_equal(p, vertices[i])
-            or Line(vertices[i], vertices[j]).point_on_line(p)
+            point.almost_equal(p, polygon[i])
+            or Line(polygon[i], polygon[j]).point_on_line(p)
         ):
             return True
 
-        x1, y1 = vertices[i]
-        x2, y2 = vertices[j]
+        x1, y1 = polygon[i]
+        x2, y2 = polygon[j]
         # This is a tricky conditional - see W. R. Franklin's web page
         if (y1 > y) != (y2 > y) and x < ((x2 - x1) * (y - y1) / (y2 - y1)) + x1:
             p_is_inside = not p_is_inside
@@ -420,13 +420,20 @@ def point_inside(
     return p_is_inside
 
 
+def all_points_inside(
+    polygon: Sequence[TPoint], points: Iterable[TPoint], edge_ok: bool = False
+) -> bool:
+    """True if all points are within the polygon."""
+    return all(point_inside(polygon, p, edge_ok=edge_ok) for p in points)
+
+
 def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
-    vertices: Sequence[TPoint], lineseg: TLine, edge_ok: bool = False
+    polygon: Sequence[TPoint], lineseg: TLine, edge_ok: bool = False
 ) -> list[Line]:
     """Compute the intersection(s) of a polygon/polyline and a line segment.
 
     Args:
-        vertices: Polygon vertices.
+        polygon: Polygon vertices.
         lineseg: A line possibly intersecting the polygon.
             A sequence of two line end points, of the form
             ``((x1, y1), (x2, y2))``.
@@ -442,16 +449,16 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
         lineseg = Line(lineseg)
 
     # automatically close the polygon
-    start = 0 if vertices[0] == vertices[-1] else -1
+    start = 0 if polygon[0] == polygon[-1] else -1
     # Find all the intersections of the line segment with the polygon
     intersections = []
-    for i in range(start, len(vertices) - 1):
-        edge = Line(vertices[i], vertices[i + 1])
+    for i in range(start, len(polygon) - 1):
+        edge = Line(polygon[i], polygon[i + 1])
         # if lineseg.p1 == edge.p1 or lineseg.p1 == edge.p2:
-        #    if point_on_vertex(vertices, lineseg.p2):
+        #    if point_on_vertex(polygon, lineseg.p2):
         #        pass
         # elif lineseg.p2 == edge.p1 or lineseg.p2 == edge.p1:
-        #    if point_on_vertex(vertices, lineseg.p2):
+        #    if point_on_vertex(polygon, lineseg.p2):
         #        pass
         if edge_ok and lineseg == edge:
             # Line is coincident with polygon edge
@@ -463,11 +470,11 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
             intersections.append(mu)
 
     tline = lineseg
-    if lineseg.p1 in vertices and lineseg.p2 in vertices:
+    if lineseg.p1 in polygon and lineseg.p2 in polygon:
         tline = lineseg.extend(const.EPSILON * -2, from_midpoint=True)
 
-    p1_inside: bool = point_inside(vertices, tline[0])  # , edge_ok=edge_ok)
-    p2_inside: bool = point_inside(vertices, tline[1])  # , edge_ok=edge_ok)
+    p1_inside: bool = point_inside(polygon, tline[0])  # , edge_ok=edge_ok)
+    p2_inside: bool = point_inside(polygon, tline[1])  # , edge_ok=edge_ok)
     segments = []
     if intersections:
         # Sort intersections in mu order
@@ -499,39 +506,39 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
     return segments
 
 
-def is_closed(vertices: Sequence[TPoint]) -> bool:
+def is_closed(polygon: Sequence[TPoint]) -> bool:
     """Test if the polygon is closed.
 
     I.e. if the first vertice matches the last vertice.
     """
-    x1, y1 = vertices[0]
-    xn, yn = vertices[-1]
+    x1, y1 = polygon[0]
+    xn, yn = polygon[-1]
     return const.float_eq(x1, xn) and const.float_eq(y1, yn)
 
 
 # This doesn't work of course...
-# def coincident_triangle_inside(vertices, triangle: Sequence[P]) -> bool:
+# def coincident_triangle_inside(polygon, triangle: Sequence[P]) -> bool:
 #    """Return True if the triangle that has at least one edge
 #    or vertex that is coincident with a polygon edge or vertex
 #    is inside the polygon.
 #    """
 #    midp1 = Line(triangle[0], triangle[1]).midpoint()
 #    midp2 = Line(triangle[2], midp1).midpoint()
-#    return point_inside(vertices, midp2)
+#    return point_inside(polygon, midp2)
 
 # class ClipPolygon(object):
 #    """Clipping polygon."""
 #
-#    def __init__(self, vertices):
+#    def __init__(self, polygon):
 #        """
-#        :param vertices: the polygon vertices.
+#        :param polygon: the polygon vertices.
 #            An iterable of 2-tuple (x, y) points.
 #        """
-#        self.vertices = vertices
+#        self.polygon = polygon
 #
 #    def point_inside(self, p):
 #        """Return True if the point is inside this polygon."""
-#        return point_inside(self.vertices, p)
+#        return point_inside(self.polygon, p)
 #
 #    def clip_line(self, line):
 #        """Compute the intersection(s), if any, of this polygon
@@ -542,7 +549,7 @@ def is_closed(vertices: Sequence[TPoint]) -> bool:
 #            or that lie completely within the polygon. Returns None if there
 #            are no intersections.
 #        """
-#        return intersect_line(self.vertices, line)
+#        return intersect_line(self.polygon, line)
 #
 
 
@@ -747,8 +754,8 @@ def simplify_polyline_rdp(
         simplified1.extend(simplified2[1:])
         return simplified1
 
-    # All points in between the endpoints are within the tolerance band
-    # so skip them.
+    # All points in between chord endpoints are within tolerance
+    # so they are eliminated.
     return [chord.p1, chord.p2]
 
 
@@ -862,7 +869,7 @@ def simplify_polyline_vw(
 #    return polyline
 
 
-def length(polyline: Sequence[TPoint]) -> float:
+def length(polyline: Iterable[TPoint]) -> float:
     """The total length of a polyline/polygon."""
     return float(
         sum(

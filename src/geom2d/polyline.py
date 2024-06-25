@@ -6,7 +6,6 @@ A polyline being a series of connected straight line segments.
 from __future__ import annotations
 
 import math
-import sys
 from collections.abc import Iterable, Iterator, Sequence
 from itertools import starmap
 from typing import TYPE_CHECKING
@@ -14,26 +13,13 @@ from typing import TYPE_CHECKING
 from . import polygon
 from .line import Line, TLine
 from .point import P, TPoint
+from .util import pairwise
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
 TPolyLine: TypeAlias = Sequence[TPoint]
 TPolyPath: TypeAlias = Sequence[TLine]
-
-# pylint: disable=ungrouped-imports
-try:
-    from itertools import (  # type: ignore [attr-defined]
-        pairwise,
-    )
-except ImportError:
-    from itertools import tee
-
-    def pairwise(iterable: Iterable) -> Iterable:  # type: ignore [no-redef]
-        """Implement itertools.pairwise for python < 3.10."""
-        a, b = tee(iterable)
-        next(b, None)
-        return zip(a, b)
 
 
 def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterator[P]:
@@ -46,8 +32,11 @@ def polypath_to_polyline(polypath: Iterable[TLine]) -> Iterator[P]:
         A polyline as an iterable of vertices.
     """
     p2: TPoint | None = None
-    for p1, p2 in polypath:  # noqa: B007
-        yield P(p1)
+    for seg in polypath:
+        # Despite typing, this allows CubicBeziers and Arcs
+        # by treating them as line segments defined by endpoints.
+        p2 = seg[-1]
+        yield P(seg[0])
     if p2:
         yield P(p2)
 
@@ -69,6 +58,11 @@ def polypath_is_closed(polypath: Sequence[TLine]) -> bool:
     return bool(polypath[0][0] == polypath[-1][1])
 
 
+def polypath_reversed(polypath: Sequence[Line]) -> list[Line]:
+    """Reverse a polypath."""
+    return [seg.path_reversed() for seg in reversed(polypath)]
+
+
 def polypath_length(polypath: Iterable[TLine]) -> float:
     """Total cumulative length of polypath."""
     return float(
@@ -86,6 +80,16 @@ def polyline_length(polyline: Iterable[TPoint]) -> float:
     )
 
 
+def polypath_length_to(polypath: Iterable[Line], p: TPoint) -> float:
+    """Distance along polypath from start point to a point on the polypath."""
+    length: float = 0
+    for seg in polypath:
+        if seg.point_on_line(p, segment=True):
+            return length + seg.p1.distance(p)
+        length += seg.length()
+    return length  # Default is total length of polyline
+
+
 def polyline_length_to(polyline: Iterable[TPoint], p: TPoint) -> float:
     """Distance along polyline from start point to a point on the polyline."""
     length: float = 0
@@ -98,57 +102,37 @@ def polyline_length_to(polyline: Iterable[TPoint], p: TPoint) -> float:
 
 
 def closest_point(
-    polypath: Iterable[Line], p: P, prefer_normal: bool = False
-) -> P | None:
+    polyline: Iterable[TPoint], p: TPoint, vertices_only: bool = False
+) -> P:
     """Get the closest point on a polyline to point `p`.
 
     Args:
-        polypath: An iterable of line segments.
+        polyline: An iterable of vertices.
         p: Reference point.
-        prefer_normal: Give preference to normal projection
-            on line segment over closest endpoint.
+        vertices_only: Closest vertices only.
+            Otherwise normal projection on closest segment.
     """
-    if not polypath:
-        return None
-    closest_p = None
-    closest_p_alt = None
-    d = sys.float_info.max
-    d_alt = sys.float_info.max
-    p_normal_alt = None
-    for segment in polypath:
-        if prefer_normal:
-            p_normal, p_normal_alt = _normal_projection_point(
-                segment.p1, segment.p2, p
-            )
-        else:
-            p_normal = segment.normal_projection_point(p, segment=True)
-        if p_normal:
-            dnorm = p.distance(p_normal)
-            if dnorm < d:
-                closest_p = p_normal
-                d = dnorm
-        elif not closest_p and p_normal_alt:
-            dnorm = p.distance(p_normal_alt)
-            if dnorm < d_alt:
-                closest_p_alt = p_normal_alt
-                d_alt = dnorm
-    return closest_p or closest_p_alt
+    p = P(p)
+    polyiter = iter(polyline)
+    p1 = next(polyiter)
+    dmin = p.distance2(p1)
+    closest_p = P(p1)
+    for p2 in polyiter:
+        p_mu = p2
+        if not vertices_only:
+            segment = Line(p1, p2)
+            mu = segment.normal_projection(p)
+            if mu <= 0:
+                p_mu = p1
+            elif mu < 1:
+                p_mu = segment.point_at(mu)
+        d = p.distance2(p_mu)
+        if d < dmin:
+            dmin = d
+            closest_p = P(p_mu)
+        p1 = p2
 
-
-def _normal_projection_point(p1: P, p2: P, p: P) -> tuple[P | None, P | None]:
-    """Projection on line segment.
-
-    Returns:
-        The point on this line segment that corresponds to
-        the projection of the specified point.
-    """
-    v1 = p2 - p1
-    u = v1.normal_projection(p - p1)
-    if u <= 0:
-        return (None, p1)
-    if u >= 1.0:
-        return (None, p2)
-    return (p1 + v1 * u, None)
+    return closest_p
 
 
 def is_inside(polypath1: Iterable[TLine], polypath2: Iterable[TLine]) -> bool:

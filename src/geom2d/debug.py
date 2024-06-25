@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
     from inkext.svg import SVGContext
 
+from . import const
 
 # svg.SVGContext singleton for drawing debug output.
 # Debug drawing is effectively disabled if this is None (default).
@@ -23,6 +24,9 @@ def set_svg_context(context: SVGContext) -> None:
     """
     global svg_context  # noqa: PLW0603 pylint: disable=global-statement
     svg_context = context
+    if context is not None:
+        # global const.DEBUG
+        const.DEBUG = True
 
 
 def debug(*args) -> None:  # noqa: ANN002
@@ -112,8 +116,8 @@ def draw_arc(
     if verbose:
         # Draw the center-arc wedge
         draw_point(center, color=color)
-        draw_line((center, p1), color=color)
-        draw_line((center, p2), color=color)
+        draw_line((center, p1), color='#ffc0e0')
+        draw_line((center, p2), color='#ffc0e0')
         draw_point(p1, color='#cc99cc')
         draw_point(p2, color='#99cccc')
 
