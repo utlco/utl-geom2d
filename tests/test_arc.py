@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 import geom2d
-from geom2d import const, ellipse
+from geom2d import const
 from geom2d.arc import Arc
 from geom2d.ellipse import EllipticalArc
 from geom2d.point import P
@@ -81,7 +81,7 @@ def test_arc_g1() -> None:
 
 def test_arc_subdivide() -> None:
     """Test Arc subdivision."""
-    arcs = ARC_3.subdivide_at(0.5)
+    arcs = ARC_3.subdivide(0.5)
     assert len(arcs) == 2
     assert const.angle_eq(arcs[0].angle, arcs[1].angle)
     assert const.angle_eq(arcs[0].angle + arcs[1].angle, ARC_3.angle)
@@ -90,10 +90,8 @@ def test_arc_subdivide() -> None:
 
 def test_arc_center() -> None:
     """Test Arc center calculation."""
-    print('ARC_3')
     c = geom2d.arc.calc_center(ARC_3.p1, ARC_3.p2, ARC_3.radius, ARC_3.angle)
     assert c == ARC_3.center
-    print('ARC_4')
     c = geom2d.arc.calc_center(ARC_5.p1, ARC_5.p2, ARC_5.radius, ARC_5.angle)
     assert c == ARC_5.center
 
@@ -140,10 +138,10 @@ def test_arc_elliptical() -> None:
     )
     assert ea2 == ELARC_2_2
 
-    p = ea1.point_at(.5)
-    assert const.float_eq(ea1.point_to_theta(p), .5)
-    p = ea2.point_at(.5)
-    assert const.float_eq(ea2.point_to_theta(p), .5)
+    p = ea1.point_at(0.5)
+    assert const.float_eq(ea1.point_to_theta(p), 0.5)
+    p = ea2.point_at(0.5)
+    assert const.float_eq(ea2.point_to_theta(p), 0.5)
 
     assert ea1.point_inside(ea1.center)
     p = ea1.center + P(ea1.rx - const.EPSILON * 10, 0).rotate(ea1.phi)
@@ -152,4 +150,3 @@ def test_arc_elliptical() -> None:
     assert ea1.point_inside(p)
 
     assert ea2.point_inside(ea2.center)
-

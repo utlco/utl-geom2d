@@ -4,12 +4,9 @@ import math
 import sys
 
 import numpy as np
-from geom2d import point
-from geom2d.const import EPSILON, MAX_XY, float_eq
+from geom2d import const, point
+from geom2d.const import float_eq
 from geom2d.point import P
-
-# Epsilon minus a tiny amount
-EPSILON_MINUS = EPSILON - sys.float_info.epsilon  # (EPSILON / 1000)
 
 P1 = P(60, 40)
 CCW_PT = [
@@ -50,9 +47,9 @@ def test_misc() -> None:
     assert p.y == -point.max_xy()
 
     for angle in np.linspace(-math.pi, math.pi, 100):
-        p = P.from_polar(EPSILON_MINUS, angle)
+        p = P.from_polar(const.EPSILON - sys.float_info.epsilon, angle)
         p2 = P.random()
-        p3 = p2 + EPSILON * max(p2.x, p2.y)
+        p3 = p2 + const.EPSILON * max(p2.x, p2.y)
 
         # test __eq__
         assert p.is_zero()
@@ -60,7 +57,7 @@ def test_misc() -> None:
         assert p2 != p3
 
         # test to/from polar
-        mag = np.random.default_rng().uniform(EPSILON, MAX_XY)
+        mag = np.random.default_rng().uniform(const.EPSILON, const.MAX_XY)
         p = P.from_polar(mag, angle)
         m, a = p.to_polar()
         assert float_eq(mag, p.length())
@@ -71,7 +68,7 @@ def test_misc() -> None:
         # test unit length
         p2u = p2.unit()
         ulen = p2u.length()
-        assert ulen <= (1.0 + EPSILON)
+        assert ulen <= (1.0 + const.EPSILON)
         assert float_eq(ulen * p2.x / p2u.x, p2.length())
 
 
@@ -88,7 +85,7 @@ def test_is_ccw() -> None:
 def test_hash() -> None:
     """Test point hash for collisions."""
     # Big coordinate space
-    _test_hash(10000, -MAX_XY, MAX_XY)
+    _test_hash(10000, -const.MAX_XY, const.MAX_XY)
     # Small coordinate space
     _test_hash(10000, -1.0, 1.0)
 
