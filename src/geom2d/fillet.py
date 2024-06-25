@@ -248,41 +248,50 @@ def create_fillet_arc(
         return None
 
     if adjust_radius:
+        # Shrink radius to fit segment lengths and angle
         radius = _adjusted_radius(seg1, seg2, radius)
 
-    # Find the fillet arc center point
-    fillet_center: P | None = None
-    if isinstance(seg1, Line):
-        if isinstance(seg2, Line):
-            fillet_center = _fillet_center_line_line(seg1, seg2, radius)
-        else:
-            fillet_center = _fillet_center_line_arc(seg1, seg2, radius)
-    elif isinstance(seg2, Line):
-        fillet_center = _fillet_center_arc_line(seg1, seg2, radius)
-    else:
-        fillet_center = _fillet_center_arc_arc(seg1, seg2, radius)
-
-    # Find the fillet arc endpoints
-    fp1: P | None = None
-    fp2: P | None = None
+    fillet_center = _fillet_center(seg1, seg2, radius)
     if fillet_center:
-        # debug.draw_point(fillet_center, color='#ffff00')
-        fp1 = seg1.normal_projection_point(fillet_center, segment=True)
-        fp2 = seg2.normal_projection_point(fillet_center, segment=True)
-        if _DEBUG:
-            if fp1:
-                debug.draw_point(fp1, color='#ff0080')
-            if fp2:
-                debug.draw_point(fp2, color='#ff0080')
-
-        # fillet_arc: Arc | None = None
-        if fp1 and fp2 and fp1 != fp2:
-            fillet_arc = Arc.from_two_points_and_center(fp1, fp2, fillet_center)
-            if _DEBUG and fillet_arc:
-                debug.draw_arc(fillet_arc, color='#ff0080')
-            return fillet_arc
+        return _fillet_arc(seg1, seg2, fillet_center)
 
     return None
+
+
+def _fillet_arc(
+    seg1: Line | Arc, seg2: Line | Arc, fillet_center: P
+) -> Arc | None:
+    """Construct the fillet arc."""
+    # debug.draw_point(fillet_center, color='#ffff00')
+    fp1 = seg1.normal_projection_point(fillet_center, segment=True)
+    fp2 = seg2.normal_projection_point(fillet_center, segment=True)
+    if _DEBUG:
+        if fp1:
+            debug.draw_point(fp1, color='#ff0080')
+        if fp2:
+            debug.draw_point(fp2, color='#ff0080')
+
+    # fillet_arc: Arc | None = None
+    if fp1 and fp2 and fp1 != fp2:
+        fillet_arc = Arc.from_two_points_and_center(fp1, fp2, fillet_center)
+        if _DEBUG and fillet_arc:
+            debug.draw_arc(fillet_arc, color='#ff0080')
+        return fillet_arc
+
+    return None
+
+
+def _fillet_center(
+    seg1: Line | Arc, seg2: Line | Arc, radius: float
+) -> P | None:
+    """Find the fillet arc center point."""
+    if isinstance(seg1, Line):
+        if isinstance(seg2, Line):
+            return _fillet_center_line_line(seg1, seg2, radius)
+        return _fillet_center_line_arc(seg1, seg2, radius)
+    if isinstance(seg2, Line):
+        return _fillet_center_arc_line(seg1, seg2, radius)
+    return _fillet_center_arc_arc(seg1, seg2, radius)
 
 
 def _fillet_center_line_line(
