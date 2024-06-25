@@ -12,9 +12,7 @@ import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from geom2d import debug
-
-from . import const, ellipse, util
+from . import const, debug, ellipse, util
 from .const import TAU
 from .line import Line
 from .point import P
@@ -24,11 +22,6 @@ if TYPE_CHECKING:
 
     from .point import TPoint
     from .transform2d import TMatrix
-
-_DEBUG = False  # const.DEBUG
-
-if _DEBUG:
-    from . import debug
 
 
 # TODO: Refactor to make p2 the last element of the tuple
@@ -67,7 +60,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         p2 = P(p2)
         center = P(center) if center else calc_center(p1, p2, radius, angle)
 
-        if _DEBUG:
+        if const.DEBUG:
             # Perform a sanity check
             d1 = p1.distance(center)
             d2 = p2.distance(center)
@@ -126,7 +119,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             if large_arc:
                 angle = (-TAU if angle < 0 else TAU) - angle
             return Arc(p1, p2, (d1 + d2) / 2, angle, center)
-        if _DEBUG:
+        if const.DEBUG:
             debug.draw_point(p1, color='#ff0000')
             debug.draw_point(p2, color='#00ff00')
             debug.draw_point(center, color='#ffff00')
@@ -200,6 +193,16 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     def center(self) -> P:
         """The center point of this arc."""
         return self[4]
+
+    @property
+    def large_arc_flag(self) -> int:
+        """SVG large arc flag (0, 1)."""
+        return 1 if abs(self.angle) > math.pi else 0
+
+    @property
+    def sweep_flag(self) -> int:
+        """SVG sweep flag (0, 1)."""
+        return 1 if self.angle > 0 else 0
 
     def start_angle(self) -> float:
         """The angle from the arc center between the x axis and the first point."""
@@ -455,7 +458,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         """The point at the middle of the arc segment."""
         return self.point_at(0.5)
 
-    def subdivide_at(self, mu: float) -> tuple[Arc, Arc] | tuple[Arc]:
+    def subdivide(self, mu: float) -> tuple[Arc, Arc] | tuple[Arc]:
         """Subdivide this arc at unit distance :mu: from the start point.
 
         Args:
@@ -760,9 +763,6 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         A string with the SVG path 'd' attribute values
         that corresponds to this arc.
         """
-        large_arc_flag = 1 if abs(self.angle) > math.pi else 0
-        sweep_flag = 1 if self.angle > 0 else 0
-
         ff = util.float_formatter()
 
         prefix = 'A ' if add_prefix or add_move else ''
@@ -774,7 +774,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         p2 = self.p2 * scale
         return (
             f'{prefix}{ff(radius)},{ff(radius)}'
-            f' 0 {large_arc_flag} {sweep_flag}'
+            f' 0 {self.large_arc_flag} {self.sweep_flag}'
             f' {ff(p2.x)},{ff(p2.y)}'
         )
 
