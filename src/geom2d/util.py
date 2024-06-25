@@ -16,9 +16,20 @@ if TYPE_CHECKING:
     from .line import Line
     from .point import TPoint
 
-# print('importing util')
-# def dummy():
-#     print('dummy')
+
+# pylint: disable=ungrouped-imports
+try:
+    from itertools import (  # type: ignore [attr-defined]
+        pairwise,
+    )
+except ImportError:
+    from itertools import tee
+
+    def pairwise(iterable: Iterable) -> Iterable:  # type: ignore [no-redef]
+        """Implement itertools.pairwise for python < 3.10."""
+        a, b = tee(iterable)
+        next(b, None)
+        return zip(a, b)
 
 
 def float_formatter(
