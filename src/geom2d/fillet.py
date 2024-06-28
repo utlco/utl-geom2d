@@ -38,7 +38,7 @@ def fillet_path(
     to connect adjacent path segments.
 
     Args:
-        path: A list of connected Line or Arc segments.
+        path: An iterable of connected Line or Arc segments.
         radius: The radius of the fillet arc.
         fillet_close: If True and the path is closed then
             add a terminating fillet.

@@ -150,3 +150,24 @@ def test_arc_elliptical() -> None:
     assert ea1.point_inside(p)
 
     assert ea2.point_inside(ea2.center)
+
+
+def test_distance_to_point():
+    center = P(4.25, 5.5)
+    p1 = (6.84807621, 7)
+    p2 = (3.98853277, 8.48858409)
+    r = 3
+    arc = geom2d.Arc.from_endpoints(p1, p2, r, 0, 1)
+    tp1 = (8, 9)
+    tp2 = (4.8, 7.3)
+    tp3 = (7.8, 6.5)
+    D = 2.1346
+    d = arc.distance_to_point(tp1)
+    assert const.float_eq(d, center.distance(tp1) - r)
+    d = arc.distance_to_point(tp2)
+    assert const.float_eq(d, r - center.distance(tp2))
+    d = arc.distance_to_point(tp3)
+    assert const.float_eq(d, -1)
+    d = arc.distance_to_point(tp3, segment=False)
+    assert const.float_eq(d, arc.p1.distance(tp3))
+

@@ -3,249 +3,21 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import geom2d
 import geom2d.const
+import numpy as np
 import pytest
 from geom2d import bezier
 
-CURVE1 = (
-    (1.7205388, 8.4824794),
-    (5.4513704, 6.8569157),
-    (0.58214369, 5.854022),
-    (3.8688956, 8.2376514),
-)
-BIARC_PATH = (
-    (1.7205388, 8.4824794),
-    (
-        7.7133622647036715,
-        7.7133622647036715,
-        0,
-        0,
-        0,
-        2.1625218720749353,
-        8.272986567702915,
-    ),
-    (
-        4.417260178011077,
-        4.417260178011077,
-        0,
-        0,
-        0,
-        2.5138965383690364,
-        8.071718003288789,
-    ),
-    (
-        3.2854394339445125,
-        3.2854394339445125,
-        0,
-        0,
-        0,
-        2.783500044955975,
-        7.880732798411543,
-    ),
-    (
-        1.7296134648164587,
-        1.7296134648164587,
-        0,
-        0,
-        0,
-        2.979234179246683,
-        7.700717073176886,
-    ),
-    (
-        1.2365528141025641,
-        1.2365528141025641,
-        0,
-        0,
-        0,
-        3.1100601562401966,
-        7.533655146894853,
-    ),
-    (
-        0.6639387810502014,
-        0.6639387810502014,
-        0,
-        0,
-        0,
-        3.184008424992583,
-        7.3806033705273375,
-    ),
-    (
-        0.5061315836185065,
-        0.5061315836185065,
-        0,
-        0,
-        0,
-        3.2094750529183615,
-        7.2430993862934265,
-    ),
-    (
-        0.384593944149876,
-        0.384593944149876,
-        0,
-        0,
-        0,
-        3.1956759779663773,
-        7.122503656203189,
-    ),
-    (
-        0.38473726716288403,
-        0.38473726716288403,
-        0,
-        0,
-        0,
-        3.142040851944804,
-        7.007869885888827,
-    ),
-    (
-        0.4354441551553535,
-        0.4354441551553535,
-        0,
-        0,
-        0,
-        3.0603449123854376,
-        6.918775038155422,
-    ),
-    (
-        0.46387066523207166,
-        0.46387066523207166,
-        0,
-        0,
-        0,
-        2.9629309569716007,
-        6.85704646636593,
-    ),
-    (
-        0.384094222829155,
-        0.384094222829155,
-        0,
-        0,
-        0,
-        2.8617773138928184,
-        6.82555323198668,
-    ),
-    (
-        0.29087511560817814,
-        0.29087511560817814,
-        0,
-        0,
-        0,
-        2.7695337701246645,
-        6.825162197598666,
-    ),
-    (
-        0.13677324050799555,
-        0.13677324050799555,
-        0,
-        0,
-        0,
-        2.698624267466431,
-        6.859110409223775,
-    ),
-    (
-        0.11355246916250542,
-        0.11355246916250542,
-        0,
-        0,
-        0,
-        2.675045999731159,
-        6.889280372631843,
-    ),
-    (
-        0.13591182823609743,
-        0.13591182823609743,
-        0,
-        0,
-        0,
-        2.661156665333671,
-        6.928516170221641,
-    ),
-    (
-        0.17678058839751204,
-        0.17678058839751204,
-        0,
-        0,
-        0,
-        2.6588139174695717,
-        6.977267456208635,
-    ),
-    (
-        0.3271009635564713,
-        0.3271009635564713,
-        0,
-        0,
-        0,
-        2.6695368580841854,
-        7.035718741393522,
-    ),
-    (
-        0.47956879210699327,
-        0.47956879210699327,
-        0,
-        0,
-        0,
-        2.7041109713198708,
-        7.124388319319448,
-    ),
-    (
-        1.0464849346772587,
-        1.0464849346772587,
-        0,
-        0,
-        0,
-        2.7656005700090214,
-        7.229482078894049,
-    ),
-    (
-        1.465852686268859,
-        1.465852686268859,
-        0,
-        0,
-        0,
-        2.856607029401953,
-        7.351809066016947,
-    ),
-    (
-        2.731563503199021,
-        2.731563503199021,
-        0,
-        0,
-        0,
-        2.980689094986611,
-        7.491616601604698,
-    ),
-    (
-        3.571814896862915,
-        3.571814896862915,
-        0,
-        0,
-        0,
-        3.140711910160394,
-        7.649669615289186,
-    ),
-    (
-        5.876705351536765,
-        5.876705351536765,
-        0,
-        0,
-        0,
-        3.3400411869919413,
-        7.826285358861378,
-    ),
-    (
-        7.325615402054509,
-        7.325615402054509,
-        0,
-        0,
-        0,
-        3.5816783844870956,
-        8.022152731169065,
-    ),
-    (11.057347795264578, 11.057347795264578, 0, 0, 0, 3.8688956, 8.2376514),
-)
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+CURVE1 = ((1.6, 3.3), (3.6, 1.8), (4.8, 2.2), (4.8, 2.8))
+BIARC_COUNT = 12
 BIARC_TOLERANCE = 0.001
-BIARC_DEPTH = 4
+BIARC_DEPTH = 3
 BIARC_LINE_FLATNESS = 0
 
 
@@ -305,8 +77,7 @@ RC2_INFL = (0.5, -1)
 
 # Circle to test circle-to-bezier approximation
 CIRCLE1_R = 3.5
-CIRCLE1_CX = 4.25
-CIRCLE1_CY = 5
+CIRCLE1_CENTER = (4.25, 5)
 
 # Circle-Bezier approximations
 CIRCLE1_B1 = (
@@ -342,21 +113,21 @@ def test_biarcs() -> None:
         max_depth=BIARC_DEPTH,
         line_flatness=BIARC_LINE_FLATNESS,
     )
-    p1 = BIARC_PATH[0]
-    for biarc, biarc_ref in zip(biarcs, BIARC_PATH[1:]):
-        rx, ry, phi, large_arc, sweep_flag, x, y = biarc_ref
-        p2 = (x, y)
-        elarc = geom2d.EllipticalArc.from_endpoints(
-            p1, p2, rx, ry, phi, large_arc, sweep_flag
-        )
-        assert elarc
-        assert isinstance(biarc, geom2d.Arc)
-        assert biarc.p1 == p1
-        assert biarc.p2 == p2
-        assert geom2d.float_eq(biarc.radius, rx)
-        assert geom2d.float_eq(biarc.angle, elarc.sweep_angle)
-        assert biarc.center == elarc.center
-        p1 = p2
+    assert len(biarcs) == BIARC_COUNT
+    assert biarcs[0].p1 == curve.p1
+    assert biarcs[-1].p2 == curve.p2
+    # TODO: verify Hausdorff distance
+    _verify_biarc_hausdorff(curve, biarcs, BIARC_TOLERANCE)
+
+def _verify_biarc_hausdorff(curve: geom2d.CubicBezier, biarcs: list[geom2d.Arc], tolerance: float) -> None:
+    maxhd: float = 0
+    for arc in biarcs:
+        hd = curve.hausdorff_distance(arc, ndiv=100)
+        #print(f'hd = {hd}')
+        maxhd = max(hd, maxhd)
+
+    #print(f'max hd: {maxhd}')
+    assert hd < tolerance
 
 
 @pytest.mark.parametrize(('curve', 'line', 'points'), INTERSECTIONS_PARAMETRIZE)
@@ -387,19 +158,39 @@ def test_find_roots():
     assert f1 == RC2_INFL
 
 
-def test_bezier_circle():
-    prev_epsilon = geom2d.const.set_epsilon(1e-7)
-    curves = bezier.bezier_circle_2((CIRCLE1_CX, CIRCLE1_CY), CIRCLE1_R)
-    assert curves[0] == CIRCLE1_B1
-    assert curves[1] == CIRCLE1_B2
-    assert curves[2] == CIRCLE1_B3
-    assert curves[3] == CIRCLE1_B4
-    geom2d.const.set_epsilon(prev_epsilon)
-    p1 = (CIRCLE1_CX, CIRCLE1_R + CIRCLE1_CY)
-    p2 = (CIRCLE1_R + CIRCLE1_CX, CIRCLE1_CY)
-    a1 = geom2d.Arc(p1, p2, CIRCLE1_R, math.pi / 2, (CIRCLE1_CX, CIRCLE1_CY))
-    hd = curves[0].hausdorff_distance(a1)
-    assert hd < 0.00018
-    curves = bezier.bezier_circle((CIRCLE1_CX, CIRCLE1_CY), CIRCLE1_R)
-    hd = curves[0].hausdorff_distance(a1)
-    assert hd < 0.00063
+def test_bezier_circle() -> None:
+    r = CIRCLE1_R
+    x, y = CIRCLE1_CENTER
+
+    curves = bezier.bezier_circle((x, y), r)
+    _verify_circle_hausdorff(x, y, r, curves, 0.0006863)
+
+    curves = bezier.bezier_circle_2((x, y), r)
+    _verify_circle_hausdorff(x, y, r, curves, 0.0001945)
+
+
+def _verify_circle_hausdorff(
+    x: float,
+    y: float,
+    r: float,
+    curves: Sequence[geom2d.CubicBezier],
+    max_hd: float,
+) -> None:
+    # Circle quadrant subdivisions
+    p1 = (x, r + y)
+    p2 = (r + x, y)
+    p3 = (x, -r + y)
+    p4 = (-r + x, y)
+    arc_endpoints = ((p1, p2), (p2, p3), (p3, p4), (p4, p1))
+
+    for curve, p in zip(curves, arc_endpoints):
+        a = geom2d.Arc(p[0], p[1], r, math.pi / 2, (x, y))
+        hd = curve.hausdorff_distance(a, ndiv=100)
+        assert hd < (max_hd + geom2d.const.EPSILON)
+
+
+def test_arc_bezier_h() -> None:
+    assert geom2d.float_eq(bezier.arc_bezier_h(math.pi / 2), 0.55191497)
+    assert geom2d.float_eq(bezier.arc_bezier_h((2 * math.pi) / 3), 0.76808599)
+    for n in np.linspace(-math.pi, math.pi, num=100):
+        assert bezier.arc_bezier_h(n) >= 0

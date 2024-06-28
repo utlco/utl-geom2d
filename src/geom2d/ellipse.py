@@ -406,10 +406,8 @@ class EllipticalArc(Ellipse):
             sweep_flag: The sweep flag (0 or 1).
 
         Returns:
-            An EllipticalArc.
-
-        Raises:
-            ValueError: If rx or ry is zero.
+            An EllipticalArc or None if the parameters do not
+            describe a valid arc.
         """
         # print(p1, p2, rx, ry, large_arc, sweep_flag, math.degrees(phi))
         p1 = P(p1)

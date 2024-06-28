@@ -17,7 +17,6 @@ EPSILONS = [1 / (10**p) for p in range(3, 9)]
 def test_float_eq(epsilon: float) -> None:
     """Test geom2d.const.float_eq."""
     const.set_epsilon(epsilon)
-    print(f'epsilon: {epsilon!r} {const.MAX_XY!r}')
 
     # Tolerence/epsilon minus a tiny bit (system float epsilon)
     epsilon_minus = epsilon - sys.float_info.epsilon
