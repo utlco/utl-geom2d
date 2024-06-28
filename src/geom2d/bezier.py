@@ -216,16 +216,13 @@ class CubicBezier(tuple[P, P, P, P]):
         t1, t2 = self.roots()
         if t2 < 0:
             if t1 > 0:
-                # debug.debug(f't1 {t1}')
                 return self.subdivide(t1)  # one inflection at t1
             return (self,)  # no inflections
         if t1 < 0:
             if t2 > 0:
-                # debug.debug(f't2 {t2}')
                 return self.subdivide(t2)  # one inflection at t2
             return (self,)  # no inflections
 
-        # debug.debug(f't1 {t1}, t2 {t2}')
         # Two roots/inflection points
         assert t1 < t2
 
@@ -282,7 +279,6 @@ class CubicBezier(tuple[P, P, P, P]):
         a = v2.x * v3.y - v2.y * v3.x
         b = v1.x * v3.y - v1.y * v3.x
         c = v1.x * v2.y - v1.y * v2.x
-        # debug.debug(f'abc {a} {b} {c}')
 
         def _valid_t(t: float) -> float:
             # Check range of t, returns -1 if t is out of range.
@@ -295,7 +291,6 @@ class CubicBezier(tuple[P, P, P, P]):
                 # This would be a stright line so there shouldn't really
                 # be an inflection point.
                 # TODO: investigate this.
-                debug.debug(f'a=0 t={-c / b}')
                 return _valid_t(-c / b), -1
             return -1, -1
 
@@ -350,7 +345,6 @@ class CubicBezier(tuple[P, P, P, P]):
         mrot = transform2d.matrix_rotate(-chord.angle(), origin=chord.p1)
         curve = self.transform(mrot)
         extrema_rot = curve.find_extrema_points()
-        debug.debug(extrema_rot)
         if not extrema_rot:
             return ((), None)
         # Rotate the extrema to match original curve
@@ -368,7 +362,7 @@ class CubicBezier(tuple[P, P, P, P]):
             bbox = None
         return (extrema, bbox)
 
-    def find_extrema_points(self) -> list:
+    def find_extrema_points(self) -> list[P]:
         """Find the extremities of this curve.
 
         See:
@@ -837,11 +831,12 @@ class CubicBezier(tuple[P, P, P, P]):
         """
         # This is a fairly rough approximation but it works pretty well.
         t_step = (t2 - t1) * (1.0 / ndiv)
-        t = t1 + t_step
-        while t < t2:
+        t = t1
+        while t <= t2:
             p = self.point_at(t)
             # debug.draw_point(p, color='#000000') # DEBUG
-            if arc.distance_to_point(p) > tolerance:
+            d = arc.center.distance(p) - arc.radius
+            if d > tolerance:
                 return False
             t += t_step
         return True
@@ -854,6 +849,9 @@ class CubicBezier(tuple[P, P, P, P]):
         The approximation accuracy depends on the number of steps
         specified by `ndiv`.
 
+        This curve should have no inflections and the arc should
+        have the same convexity (ie "bulge" in the same direction).
+
         Args:
             arc (:obj:`Arc`): The arc to test
             t1 (float): Start location of curve
@@ -865,13 +863,16 @@ class CubicBezier(tuple[P, P, P, P]):
         """
         # This is a fairly rough approximation but it works pretty well.
         t_step = (t2 - t1) * (1.0 / ndiv)
-        t = t1 + t_step
-        d: float = 0
-        while t < t2:
+        t = t1
+        hd: float = 0
+        while t <= t2:
             p = self.point_at(t)
-            d = max(d, arc.distance_to_point(p))
+            d = arc.distance_to_point(p)
+            # d = arc.center.distance(p) - arc.radius
+            hd = max(hd, d)
             t += t_step
-        return d
+
+        return hd
 
     def path_reversed(self) -> CubicBezier:
         """Return a CubicBezier with control points (direction) reversed."""
@@ -922,50 +923,37 @@ def bezier_circle(
 ) -> tuple[CubicBezier, CubicBezier, CubicBezier, CubicBezier]:
     """Create an approximation of a circle with a cubic Bezier curve.
 
-    See:
-        https://pomax.github.io/bezierinfo/#circles_cubic
-        http://hansmuller-flex.blogspot.com/2011/10/more-about-approximating-circular-arcs.html
-
     Args:
         center (tuple): The center point of the circle. Default is (0,0).
         radius (float): The radius of the circle. Default is 1.
 
     Returns:
         tuple: A tuple with four bezier curves for each circle quadrant.
-        Circle will be counterclockwise from the positive x axis
+        Circle will be clockwise from the positive x axis
         relative to the center point.
     """
     # Magic number for control point tangent length
-    #    K = 4 * math.tan(arc.angle / 4) / 3
+    #    H = 4 * math.tan(arc.angle / 4) / 3
     # or:
-    #    K = 4 * ((math.sqrt(2) - 1) / 3)
-    # k = 0.5522847498308 * radius
-    k = 0.5519150244935105707435627 * radius
-    b1 = CubicBezier(
-        P(radius, 0.0) + center,
-        P(radius, k) + center,
-        P(k, radius) + center,
-        P(0.0, radius) + center,
-    )
-    b2 = CubicBezier(
-        P(0.0, radius) + center,
-        P(-k, radius) + center,
-        P(-radius, k) + center,
-        P(-radius, 0.0) + center,
-    )
-    b3 = CubicBezier(
-        P(-radius, 0.0) + center,
-        P(-radius, -k) + center,
-        P(-k, -radius) + center,
-        P(0.0, -radius) + center,
-    )
-    b4 = CubicBezier(
-        P(0.0, -radius) + center,
-        P(k, -radius) + center,
-        P(radius, -k) + center,
-        P(radius, 0.0) + center,
-    )
-    return b1, b2, b3, b4
+    #    H = 4 * ((math.sqrt(2) - 1) / 3)
+    # The usual value:
+    # Hausdorff distance: 0.00095385
+    # h = 0.5522847498308
+    # From Spencer Mortensen:
+    # https://spencermortensen.com/articles/bezier-circle/
+    # Hausdorff distance: 0.00068627
+    h = 0.5519150244935105707435627
+    # From Vicuta Neagos:
+    # http://atps.tucn.ro/pdf/full_papers/2019-ATPS-NEAGOS.pdf
+    # This one seems measurably worse.
+    # Hausdorff distance: 0.00076613
+    # h = 0.551872
+    # Using method from
+    # https://www.sciencedirect.com/science/article/pii/S0377042711004419
+    # Very slightly worse than Mortensen (usually within EPSILON)
+    # Hausdorff distance: 0.00068637
+    # h = 0.5519149706460424
+    return _bezier_circle(center, radius, h, 1, 1)
 
 
 def bezier_circle_2(
@@ -973,7 +961,8 @@ def bezier_circle_2(
 ) -> tuple[CubicBezier, CubicBezier, CubicBezier, CubicBezier]:
     """Create an approximation of a circle with a cubic Bezier curve.
 
-    This is a better approximation than :func:`bezier_circle`.
+    This is a better approximation than :func:`bezier_circle`,
+    except that the curves are not strictly G1 continuous.
 
     See:
         https://spencermortensen.com/articles/bezier-circle/
@@ -984,19 +973,30 @@ def bezier_circle_2(
 
     Returns:
         tuple: A tuple with four bezier curves for each circle quadrant.
-        Circle will be counterclockwise from the positive x axis
+        Circle will be clockwise from the positive x axis
         relative to the center point.
     """
-    a = 1.00005519 * radius
-    b = 0.55342686 * radius
-    c = 0.99873585 * radius
+    h = 0.55342686
+    # The circle is very slightly flattened
+    # TODO: see if there is a way to stay G1 (ie create an ellipse)
+    a = 1.00005519
+    c = 0.99873585
+    return _bezier_circle(center, radius, h, a, c)
+
+
+def _bezier_circle(
+    center: TPoint, radius: float, h: float, a: float, c: float
+) -> tuple[CubicBezier, CubicBezier, CubicBezier, CubicBezier]:
+    h *= radius
+    a *= radius
+    c *= radius
     x, y = center
-    b1 = CubicBezier((x, a + y), (b + x, c + y), (c + x, b + y), (a + x, y))
-    b2 = CubicBezier((a + x, y), (c + x, -b + y), (b + x, -c + y), (x, -a + y))
+    b1 = CubicBezier((x, a + y), (h + x, c + y), (c + x, h + y), (a + x, y))
+    b2 = CubicBezier((a + x, y), (c + x, -h + y), (h + x, -c + y), (x, -a + y))
     b3 = CubicBezier(
-        (x, -a + y), (-b + x, -c + y), (-c + x, -b + y), (-a + x, y)
+        (x, -a + y), (-h + x, -c + y), (-c + x, -h + y), (-a + x, y)
     )
-    b4 = CubicBezier((-a + x, y), (-c + x, b + y), (-b + x, c + y), (x, a + y))
+    b4 = CubicBezier((-a + x, y), (-c + x, h + y), (-h + x, c + y), (x, a + y))
     return b1, b2, b3, b4
 
 
@@ -1004,6 +1004,7 @@ def bezier_circular_arc(arc: Arc) -> CubicBezier:
     """Create a cubic Bezier approximation of a circular arc.
 
     The central arc must be less than PI/2 radians (90deg).
+
 
     Args:
         arc (:obj:`Arc`): A circular arc.
@@ -1022,12 +1023,39 @@ def bezier_circular_arc(arc: Arc) -> CubicBezier:
     #
     # This currently works pretty well in practice however.
     # -------------------------------------------------------------------------
-    alpha = 4 * math.tan(arc.angle / 4.0) / 3.0
+    # This is from:
+    # https://pomax.github.io/bezierinfo/#circles_cubic
+    # h = 4 * math.tan(arc.angle / 4.0) / 3.0
+    # This is from
+    # https://www.sciencedirect.com/science/article/pii/S0377042711004419
+    h = arc_bezier_h(arc.angle)
     v1 = arc.p1 - arc.center
     v2 = arc.p2 - arc.center
-    c1 = arc.p1 + alpha * P(-v1.y, v1.x)
-    c2 = arc.p2 - alpha * P(-v2.y, v2.x)
+    c1 = arc.p1 + h * P(-v1.y, v1.x)
+    c2 = arc.p2 - h * P(-v2.y, v2.x)
     return CubicBezier(arc.p1, c1, c2, arc.p2)
+
+
+def arc_bezier_h(angle: float) -> float:
+    """Find best h for angle, for converting circular arc to cubic Bezier.
+
+    See:
+        https://www.sciencedirect.com/science/article/pii/S0377042711004419
+    """
+    # 256k3 + 108k - 27 = 0
+    # https://www.wolframalpha.com/input?i=256k3+%2B+108k+%E2%88%92+27+%3D+0
+    # k = 0.2235268642
+    k = 0.22352686424374557
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    # Solve quadratic equation:
+    # 9(1 - 2k cos a - 2k)h2 + 6 sin a(1 + 4k)h + 2(cos a - 1)(3 + 4k) = 0
+    a = 9 - 18 * k - (18 * k * cos_a)
+    b = (6 + 24 * k) * sin_a
+    c = (6 + 8 * k) * (cos_a - 1)
+    h = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
+    assert h > 0
+    return h
 
 
 def bezier_ellipse(ellipse: Ellipse | EllipticalArc) -> list[CubicBezier]:

@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 from . import const, debug, ellipse, util
 from .const import TAU
+from .ellipse import EllipticalArc
 from .line import Line
 from .point import P
 
@@ -102,7 +103,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         """Create an Arc given two end points and a center point.
 
         Since this would be ambiguous, a hint must be given as
-        to which way the arc goes.
+        to which way the arc goes using the `large_arc` flag.
 
         Args:
             p1: Start point.
@@ -165,6 +166,42 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         if reverse:
             return Arc(p2, p1, radius, -angle)
         return Arc(p1, p2, radius, angle)
+
+    @staticmethod
+    def from_endpoints(
+        p1: TPoint,
+        p2: TPoint,
+        radius: float,
+        large_arc: int,
+        sweep_flag: int,
+    ) -> Arc | None:
+        """Create a circular arc from SVG-style endpoint parameters.
+
+        Args:
+            p1: The start point of the arc.
+            p2: The end point of the arc.
+            radius: Arc radius.
+            large_arc: The large arc flag (0 or 1).
+            sweep_flag: The sweep flag (0 or 1).
+
+        Returns:
+            An Arc, or None if the parameters do not
+            describe a valid arc.
+        """
+        elliptical_arc = EllipticalArc.from_endpoints(
+            p1, p2, radius, radius, 0, large_arc, sweep_flag
+        )
+
+        if elliptical_arc:
+            return Arc(
+                p1,
+                p2,
+                radius,
+                elliptical_arc.sweep_angle,
+                center=elliptical_arc.center,
+            )
+
+        return None
 
     @property
     def p1(self) -> P:
@@ -366,8 +403,11 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         # Check for degenerate arc case
         if self.radius < const.EPSILON or self.p1 == self.p2:
             return self.p1.distance(p)
+
+        # Determine if the point is within the arc span
         aangle = abs(self.angle)
         if const.float_eq(aangle, math.pi):
+            # 180d angle, so just see which side of the chord it lands on.
             which_side = Line(self.p1, self.p2).which_side(p)
             is_inside_arc = (which_side == 1 and self.angle < 0) or (
                 which_side == -1 and self.angle > 0
@@ -395,6 +435,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
                 s = v1.cross(v3) / determinant
                 t = v3.cross(v2) / determinant
                 is_inside_arc = s >= 0.0 and t >= 0.0
+
         if is_inside_arc:
             # Distance from arc center to point.
             p2center = self.center.distance(p)

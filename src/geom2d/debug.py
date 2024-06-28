@@ -16,6 +16,8 @@ from . import const
 # Debug drawing is effectively disabled if this is None (default).
 svg_context: SVGContext | None = None  # pylint: disable=invalid-name
 
+_DEFAULT_COLOR = '#f00'
+
 
 def set_svg_context(context: SVGContext) -> None:
     """Initialize this module with an SVGContext.
@@ -39,8 +41,8 @@ def debug(*args) -> None:  # noqa: ANN002
 
 def draw_point(
     point: Sequence[float],
+    color: str = _DEFAULT_COLOR,
     width: str | float = '4px',
-    color: str = '#0000ff',
     opacity: float = 1,
 ) -> None:
     """Draw a dot. Useful for debugging and testing."""
@@ -56,7 +58,7 @@ def draw_point(
 
 def draw_line(
     line: Sequence[Sequence[float]],
-    color: str = '#c00000',
+    color: str = _DEFAULT_COLOR,
     width: str | float = '1px',
     opacity: float = 1,
     verbose: bool = False,
@@ -74,7 +76,7 @@ def draw_line(
 
 def draw_poly(
     vertices: Sequence[Sequence[float]],
-    color: str = '#c00000',
+    color: str = _DEFAULT_COLOR,
     width: str | float = '1px',
     opacity: float = 1,
     verbose: bool = False,
@@ -93,7 +95,7 @@ def draw_poly(
 
 def draw_arc(
     arc: tuple[Sequence[float], Sequence[float], float, float, Sequence[float]],
-    color: str = '#cccc99',
+    color: str = _DEFAULT_COLOR,
     width: str | float = '1px',
     opacity: float = 1,
     verbose: bool = False,
@@ -125,7 +127,7 @@ def draw_arc(
 def draw_circle(
     center: Sequence[float],
     radius: float,
-    color: str = '#cccc99',
+    color: str = _DEFAULT_COLOR,
     width: str | float = '1px',
     opacity: float = 1,
     verbose: bool = False,
@@ -141,7 +143,9 @@ def draw_circle(
 
 
 def linestyle(
-    color: str = '#000000', width: str | float = '1px', opacity: float = 1.0
+    color: str = _DEFAULT_COLOR,
+    width: str | float = '1px',
+    opacity: float = 1.0,
 ) -> str:
     """Create an SVG line style using the specified attributes."""
     assert svg_context
