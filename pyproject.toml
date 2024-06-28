@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "utl-geom2d"
-version = "0.3"
+version = "0.3.1"
 authors = [{name = "Claude Zervas", email = "claude@utlco.com"}]
 description = "Simple 2D geometry package"
 readme = "README.rst"
