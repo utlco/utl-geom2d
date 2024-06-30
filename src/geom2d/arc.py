@@ -628,13 +628,13 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         return None
 
     def point_inside(self, p: TPoint) -> bool:
-        """Test if point is inside the arc or not.
+        """Test if point is inside the sector defined by this arc.
 
         Args:
             p: Point (x, y) to test.
 
         Returns:
-            True if the point is inside the arc, otherwise False.
+            True if the point is inside the sector, otherwise False.
         """
         pp = P(p) - self.center
         d2 = pp.x**2 + pp.y**2
