@@ -106,7 +106,7 @@ def _fillet_path_iter(
 ) -> Sequence[Line | Arc]:
     """Fillet a path of connected Line and Arc segments."""
     new_path: list[Line | Arc] = []
-    path_iter = PathLookahead(path_iter)
+    path_iter = _PathLookahead(path_iter)
     seg1 = next(path_iter)
     if _DEBUG:
         debug.draw_point(seg1.p1, color='#00ff00')
@@ -414,7 +414,7 @@ def _debug_draw_farc_endpoints(fp1: TPoint | None, fp2: TPoint | None) -> None:
 _marker = object()
 
 
-class PathLookahead(Iterator[_T]):
+class _PathLookahead(Iterator[_T]):
     """Wrap an iterator to allow lookahead."""
 
     _source: Iterator[_T]
@@ -427,7 +427,7 @@ class PathLookahead(Iterator[_T]):
         self._cache = collections.deque(maxlen=maxlen)
         self._maxlen = maxlen
 
-    def __iter__(self) -> PathLookahead:
+    def __iter__(self) -> _PathLookahead:
         """iter()."""
         return self
 

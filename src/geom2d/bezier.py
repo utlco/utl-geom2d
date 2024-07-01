@@ -1059,7 +1059,7 @@ def arc_bezier_h(angle: float) -> float:
 
 
 def bezier_ellipse(ellipse: Ellipse | EllipticalArc) -> list[CubicBezier]:
-    """Approximate this elliptical arc segment with Bezier curves.
+    """Approximate an elliptical arc segment with Bezier curves.
 
     If the sweep angle is greater than PI/2 the arc will be
     subdivided so that no segment has a sweep angle larger

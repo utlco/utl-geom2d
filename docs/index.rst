@@ -1,3 +1,5 @@
+
+======
 geom2d
 ======
 
@@ -27,23 +29,26 @@ Credits
 I am very grateful for the work of these people.
 
 Joseph O'Rourke: computational geometry
-<https://www.science.smith.edu/~jorourke/index.html>
+https://www.science.smith.edu/~jorourke/index.html
 
 Paul Bourke: computational geometry
-<http://paulbourke.net>
+http://paulbourke.net
 
 Eric Haines: computational geometry
-<http://erich.realtimerendering.com/>
+http://erich.realtimerendering.com/
 
 W. Randolph Franklin: short and speedy point in polygon algorithm
-<https://wrfranklin.org/Research/Short_Notes/pnpoly.html>
+https://wrfranklin.org/Research/Short_Notes/pnpoly.html
 
 Pomax: great primer on Bezier curves
-<https://pomax.github.io/bezierinfo>
+https://pomax.github.io/bezierinfo
 
 Adrian Colomitchi: finding inflection points of a cubic Bezier curve
 (his website seems to have disappeared but is still available via the wayback machine:
-<http://web.archive.org/web/20220129063812/https://www.caffeineowl.com/graphics/2d/vectorial/cubic-inflexion.html>
+http://web.archive.org/web/20220129063812/https://www.caffeineowl.com/graphics/2d/vectorial/cubic-inflexion.html
+
+Earl Boebert: Computing the arc length of a cubic Bezier
+http://steve.hollasch.net/cgindex/curves/cbezarclen.html
 
 And many others.
 
@@ -56,8 +61,9 @@ Apologies/caveats/etc.
 
 Testing is artisanal at best.
 
-Any math errors are my fault alone and, while the library is pretty fast,
-there may be obvious optimizations that I've overlooked or ignored for
+Any math errors are my fault alone and,
+while the library is fast enough for the Inkscape extensions I write,
+there may be obvious optimizations that I've overlooked or purposely ignored for
 the sake of clarity (to me).
 
 

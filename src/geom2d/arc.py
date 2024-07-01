@@ -821,11 +821,9 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
 
 
 def calc_center(p1: TPoint, p2: TPoint, radius: float, angle: float) -> P:
-    """Calculate the center point of an arc.
+    """Calculate the center point of an arc from endpoints.
 
     Given two endpoints, the radius, and a central angle.
-
-    This method is static so that it can be used by __new__.
 
     Args:
         p1: Start point
@@ -845,7 +843,6 @@ def calc_center(p1: TPoint, p2: TPoint, radius: float, angle: float) -> P:
     if const.float_eq(d, 2 * radius):
         return Line(p1, p2).midpoint()
 
-    # print(f'radius={radius} d={d} 2r={2 * radius}')
     r = (2 * radius) / d
     t = math.sqrt(r * r - 1)
 

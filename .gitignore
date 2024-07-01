@@ -18,6 +18,7 @@ dist/
 README.html
 **/*.swp
 \~\$*
+*\~
 unused*/
 saved*/
 tmp*/
