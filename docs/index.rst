@@ -47,9 +47,6 @@ Adrian Colomitchi: finding inflection points of a cubic Bezier curve
 (his website seems to have disappeared but is still available via the wayback machine:
 http://web.archive.org/web/20220129063812/https://www.caffeineowl.com/graphics/2d/vectorial/cubic-inflexion.html
 
-Earl Boebert: Computing the arc length of a cubic Bezier
-http://steve.hollasch.net/cgindex/curves/cbezarclen.html
-
 And many others.
 
 If you find code from your open source project without attribution please email me

@@ -507,7 +507,13 @@ class CubicBezier(tuple[P, P, P, P]):
         Jens Gravesen.
 
         See:
-            http://steve.hollasch.net/cgindex/curves/cbezarclen.html
+            - Jens Gravesen.
+                Adaptive subdivision and the length and energy of
+                B´ezier curves.
+                Comput. Geom., 8:13–31, 1997.
+            - B. Guenter and R. Parent.
+                Computing the arc length of parametric curves.
+                IEEE Comp. Graph. and Appl., 5:72–78, 1990.
 
         Args:
             tolerance: The approximation tolerance.
