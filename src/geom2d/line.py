@@ -293,9 +293,6 @@ class Line(tuple[P, P]):  # noqa: SLOT001
 
         http://paulbourke.net/geometry/pointlineplane/
         and http://mathworld.wolfram.com/Line-LineIntersection.html
-        and
-        https://stackoverflow.com/questions/20677795/how-do-i-compute-the-intersection-point-of-two-lines
-        (second SO answer)
 
         Args:
             other: line to test for intersection. A 4-tuple containing
@@ -354,16 +351,11 @@ class Line(tuple[P, P]):  # noqa: SLOT001
     ) -> P | None:
         """Intersection point (if any) of this line and another line.
 
-        See:
-            <http://paulbourke.net/geometry/pointlineplane/>
-            and <http://mathworld.wolfram.com/Line-LineIntersection.html>
-            and <http://geomalgorithms.com/a05-_intersect-1.html>
-
         Args:
             other: line to test for intersection. A 4-tuple containing
                 line endpoints.
             segment: if True then the intersection point must lie on both
-                segments.
+                segments. Same as seg_a=True and seg_b=True.
             seg_a: If True the intersection point must lie on this
                 line segment.
             seg_b: If True the intersection point must lie on the other
@@ -373,9 +365,17 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             A point if they intersect otherwise None.
         """
         mu = self.intersection_mu(other, segment, seg_a, seg_b)
-        if mu is None:
-            return None
-        return self.point_at(mu)
+        if mu is not None:
+            return self.point_at(mu)
+        return None
+
+    def crosses(self, other: TLine) -> bool:
+        """Return True if this line segment intersects another.
+
+        The intersection must lie between the endpoints of both segments.
+        """
+        mu = self.intersection_mu(other, segment=True)
+        return bool(mu and const.EPSILON < mu < 1 - const.EPSILON)
 
     def intersects(self, other: TLine, segment: bool = False) -> bool:
         """Return True if this segment intersects another segment."""
@@ -420,6 +420,14 @@ class Line(tuple[P, P]):  # noqa: SLOT001
 
         a = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)
         b = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)
+        denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)
+
+        if abs(denom) < const.EPSILON:
+            if inline:
+                return abs(a) < const.EPSILON and abs(b) < const.EPSILON
+            return True
+        return False
+
         denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)
 
         if abs(denom) < const.EPSILON:
@@ -624,11 +632,8 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             that corresponds with this line.
         """
         ff = util.float_formatter()
-
-        prefix = 'L ' if add_prefix or add_move else ''
-        if add_move:
-            p1 = self.p1 * scale
-            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
-
-        p2 = self.p2 * scale
-        return f'{prefix}{ff(p2.x)},{ff(p2.y)}'
+        mp = 'M ' if add_move else ('L ' if add_prefix else '')
+        lp = 'L ' if add_prefix else ''
+        p1 = f'{mp}{ff(self.p1.x * scale)},{ff(self.p1.y * scale)}'
+        p2 = f'{lp}{ff(self.p2.x * scale)},{ff(self.p2.y * scale)}'
+        return f'{p1} {p2}'

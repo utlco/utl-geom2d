@@ -90,7 +90,7 @@ def draw_poly(
     svg_context.create_polygon(vertices, close_polygon=close_poly, style=style)
     if verbose:
         for p in vertices:
-            draw_point(p, color=color)
+            draw_point(p, color=color, width=width)
 
 
 def draw_arc(

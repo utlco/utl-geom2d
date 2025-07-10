@@ -42,6 +42,9 @@ t.*
 t1.*
 t2.*
 
+# Ignore possible AI experimentation artifacts
+CLAUDE.md
+
 # Ignore annoying Mac-specific file system stuff
 .DS_Store
 .Trash

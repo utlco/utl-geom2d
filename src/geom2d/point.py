@@ -308,14 +308,6 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         x2, y2 = other
         return self[0] * y2 - self[1] * x2
 
-    def is_ccw(self, other: TPoint) -> bool:
-        """Return True if the other vector is to the left of this vector.
-
-        That would be counter-clockwise with respect to the origin as
-        long as the sector angle is less than PI (180deg).
-        """
-        return self.cross(other) > 0
-
     def angle(self) -> float:
         """The angle of this vector relative to the x axis in radians.
 
@@ -327,7 +319,8 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
     def angle2(self, p1: TPoint, p2: TPoint) -> float:
         """The angle formed by p1->self->p2.
 
-        The angle is negative if p1 is to the left of p2.
+        The angle is negative if p1 is to the left of p2
+        (ie angle direction is clockwise).
 
         Args:
             p1: First point as 2-tuple (x, y).
@@ -360,21 +353,35 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         a = self.angle2(p1, p2)
         return util.normalize_angle(a, center=math.pi)
 
-    def bisector(self, p1: TPoint, p2: TPoint, mag: float = 1.0) -> P:
+    def bisector(
+        self, p1: TPoint, p2: TPoint, mag: float = 1.0, winding: int = 0
+    ) -> P:
         """The bisector between the angle formed by p1->self->p2.
+
+        The bisector will always be in the direction of the
+        small angle made by p1->self->p2 (ie angle < PI),
+        unless specified by `winding`.
 
         Args:
             p1: First point as 2-tuple (x, y).
             p2: Second point as 2-tuple (x, y).
             mag: Optional magnitude. Default is 1.0 (unit vector).
+            winding: Optional directionality.
+                Clockwise if 1, counterclockwise if -1.
+                No effect if 0.
 
         Returns:
             A vector with origin at `self` with magnitude `mag`.
         """
         a1 = (P(p1) - self).angle()
-        a2 = (P(p2) - self).angle()
-        a3 = (a1 + a2) / 2
-        return self + P.from_polar(mag, a3)
+        a3 = self.angle2(p1, p2) / 2
+        a = a1 + a3
+        if winding < 0 and a3 > 0:
+            a -= math.pi
+        elif winding > 0 and a3 < 0:
+            a += math.pi
+        v = P.from_polar(mag, a)
+        return self + v
 
     def distance(self, p: TPoint) -> float:
         """Euclidean distance from this point to another point.
@@ -424,7 +431,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
             )  # TBD: This should probably be undefined...
 
         v2 = p1 - self
-        return v1.cross(v2) / seglen
+        return abs(v1.cross(v2) / seglen)
 
     def normal_projection(self, p: TPoint) -> float:
         """Unit distance to normal projection of point.
@@ -446,9 +453,6 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
 
         Where ABC is clockwise or counter-clockwise.
 
-        See:
-            http://www.sunshine2k.de/stuff/Java/PointInTriangle/PointInTriangle.html
-
         Args:
             a: First point of triangle as 2-tuple (x, y)
             b: Second point of triangle as 2-tuple (x, y)
@@ -457,20 +461,42 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         Returns:
             True if this point lies within the triangle ABC.
         """
+        ax, ay = a
+        bx, by = b
+        cx, cy = c
+        x, y = self
+        s = (ax - cx) * (y - cy) - (ay - cy) * (x - cx)
+        t = (bx - ax) * (y - ay) - (by - ay) * (x - ax)
+        d = (cx - bx) * (y - by) - (cy - by) * (x - bx)
+
+        has_neg = s < -const.EPSILON or t < -const.EPSILON or d < -const.EPSILON
+        has_pos = s > const.EPSILON or t > const.EPSILON or d > const.EPSILON
+        return not (has_neg and has_pos)
+
+        # return d == 0 or (d < 0) == (s + t <= 0)
+
         # Using barycentric coordinates
-        v1 = P(b[0] - a[0], b[1] - a[1])
-        v2 = P(c[0] - a[0], c[1] - a[1])
-        v3 = P(self[0] - a[0], self[1] - a[1])
-        det = v1.cross(v2)
-        s = v1.cross(v3) / det
-        t = v2.cross(v3) / det
-        return bool(s >= 0 and t >= 0 and (s + t) <= 1)
+        # v1 = P(b[0] - a[0], b[1] - a[1])
+        # v2 = P(c[0] - a[0], c[1] - a[1])
+        # v3 = P(self[0] - a[0], self[1] - a[1])
+        # det = v1.cross(v2)
+        # s = v1.cross(v3) / det
+        # t = v2.cross(v3) / det
+        # return bool(s >= 0 and t >= 0 and (s + t) <= 1)
+
+    def is_ccw(self, other: TPoint) -> bool:
+        """Return True if the other vector is to the left of this vector.
+
+        That would be counter-clockwise with respect to the origin as
+        long as the sector angle is less than PI (180deg).
+        """
+        return self.cross(other) > 0
 
     def winding(self, p2: TPoint, p3: TPoint) -> float:
         """Winding direction.
 
         Determine the direction defined by the three points
-        p1->p2->p3. `p1` being this point.
+        self->p2->p3.
 
         Args:
             p2: Second point as 2-tuple (x, y).
@@ -481,7 +507,19 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
             negative if counterclockwise (left),
             zero if points are colinear.
         """
-        return (P(p2) - self).cross(P(p3) - self)
+        w = (p2[0] - self[0]) * (p3[1] - self[1]) - (p3[0] - self[0]) * (
+            p2[1] - self[1]
+        )
+        return (w > const.EPSILON) - (w < -const.EPSILON)
+
+    def colinear(self, p2: TPoint, p3: TPoint, tolerance: float | None = None) -> bool:
+        """Returns true if this point and two others are colinear."""
+        x1 = p2[0] - self[0]
+        y1 = p2[1] - self[1]
+        x2 = p3[0] - self[0]
+        y2 = p3[1] - self[1]
+        # cross product == 0
+        return const.float_eq(x1 * y2, x2 * y1, tolerance)
 
     def transform(self, matrix: TMatrix) -> P:
         """Apply transform matrix to this vector.
@@ -527,13 +565,13 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
     #    """Compare for inequality."""
     #    return not self == other
 
-    def __bool__(self) -> bool:
-        """Return True if this is not a null vector.
-
-        See:
-            P.is_zero()
-        """
-        return not self.is_zero()
+    # def __bool__(self) -> bool:
+    #    """Return True if this is not a null vector.
+    #
+    #    See:
+    #        P.is_zero()
+    #    """
+    #    return not self.is_zero()
 
     def __neg__(self) -> P:
         """Return the unary negation of the vector (-x, -y)."""
@@ -674,6 +712,21 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
     mag = None
     normalized = None
     perpendicular = None
+
+
+def distance(p1: TPoint, p2: TPoint) -> float:
+    """Euclidean distance from this point to another point.
+
+    Defined as a function to make it simpler for point-like objects.
+
+    Args:
+        p1: First point
+        p2: Second point
+
+    Returns:
+        The Euclidean distance.
+    """
+    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
 
 
 # Make some method aliases to be compatible with various Point implementations

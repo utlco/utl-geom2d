@@ -509,11 +509,11 @@ class CubicBezier(tuple[P, P, P, P]):
         See:
             - Jens Gravesen.
                 Adaptive subdivision and the length and energy of
-                B´ezier curves.
-                Comput. Geom., 8:13–31, 1997.
+                Bezier curves.
+                Comput. Geom., 8:13-31, 1997.
             - B. Guenter and R. Parent.
                 Computing the arc length of parametric curves.
-                IEEE Comp. Graph. and Appl., 5:72–78, 1990.
+                IEEE Comp. Graph. and Appl., 5:72-78, 1990.
 
         Args:
             tolerance: The approximation tolerance.
@@ -959,6 +959,11 @@ def bezier_circle(
     # Very slightly worse than Mortensen (usually within EPSILON)
     # Hausdorff distance: 0.00068637
     # h = 0.5519149706460424
+    #
+    # Also, see: https://pomax.github.io/BezierInfo-2/#circles_cubic
+    # where
+    # h = 0.551784777779014
+    #
     return _bezier_circle(center, radius, h, 1, 1)
 
 

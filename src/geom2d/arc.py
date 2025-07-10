@@ -546,6 +546,35 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         arc2 = Arc(p, self.p2, self.radius, angle2, self.center)
         return (arc1, arc2)
 
+
+    def extend(self, amount: float, from_midpoint: bool = False) -> Line:
+        """Extend/shrink arc distance.
+
+        An arc segment that is longer (or shorter) than this line by
+        `amount` amount. The center and radius are unchanged.
+        If `from_midpoint` is True then both p1 and p2 are moved,
+        otherwise just p2.
+
+        Args:
+            amount: The distance to extend the arc. The arc distance will
+                be increased by this amount. If `amount` is less than zero
+                the length will be decreased.
+            from_midpoint: Extend the arc an equal amount on both ends
+                relative to the midpoint. The amount length on both ends
+                will be `amount`/2. Default is False.
+
+        Returns:
+            A new Arc.
+        """
+        scale = amount / self.length()
+        angle = self.angle / scale
+        mu_delta = amount / self.length()
+        if from_midpoint:
+            mu_delta /= 2
+        p2 = self.point_at(1 + mu_delta)
+        p1 = self.point_at(-mu_delta) if from_midpoint else self.p1
+        return Arc(p1, p2, self.radius, angle, self.center)
+
     def subdivide_at_point(self, p: TPoint) -> tuple[Arc, Arc] | tuple[Arc]:
         """Split this arc into two arcs at the specified point.
 

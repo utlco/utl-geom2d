@@ -46,6 +46,7 @@ except ImportError:
 
 
 TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
+CCW, CW, STRAIGHT = (1, -1, 0)
 
 
 def turn(p: TPoint, q: TPoint, r: TPoint) -> int:
@@ -59,10 +60,10 @@ def turn(p: TPoint, q: TPoint, r: TPoint) -> int:
             of p.
 
     Returns:
-        -1, 0, 1 if p,q,r forms a right, straight, or left turn.
+        -1, 0, 1 if p,q,r forms a right (CW), straight, or left (CCW) turn.
     """
-    a = (q[0] - p[0]) * (r[1] - p[1]) - (r[0] - p[0]) * (q[1] - p[1])
-    return (a > const.EPSILON) - (a < -const.EPSILON)
+    w = (q[0] - p[0]) * (r[1] - p[1]) - (r[0] - p[0]) * (q[1] - p[1])
+    return (w > const.EPSILON) - (w < -const.EPSILON)
     # or easier to read:
     # if const.is_zero(a):
     #    return 0
@@ -221,23 +222,24 @@ def _next_hull_pt_pair(
 # ==============================================================================
 
 
-def winding(vertices: Sequence[TPoint]) -> int:
-    """Determine polygon winding.
+def winding(vertices: Iterable[TPoint], close: bool = True) -> int:
+    """Determine polygon winding orientation.
 
     Returns:
-        1 if CCW else -1 if CW
+        1 if CCW else -1 if CW, 0 if straight line
     """
-    a = area(vertices)
+    a = area(vertices, close=close)
     return (a >= const.EPSILON) - (a < const.EPSILON)
 
 
-def area(vertices: Iterable[TPoint]) -> float:
+def area(vertices: Iterable[TPoint], close: bool = True) -> float:
     """Area of a simple polygon.
 
     Also determines winding (area >= 0 ==> CCW, area < 0 ==> CW).
 
     Args:
         vertices: the polygon vertices. A list of 2-tuple (x, y) points.
+        close: Close polygon if not closed. Default is True.
 
     Returns (float):
         The area of the polygon. The area will be negative if the
@@ -262,13 +264,14 @@ def area(vertices: Iterable[TPoint]) -> float:
         a += (p1[0] * p2[1]) - (p2[0] * p1[1])
 
     # Close polygon if necessary
-    if startp and (
-        not const.float_eq(p2[0], startp[0])
-        or not const.float_eq(p2[1], startp[1])
-    ):
+    # if startp and (
+    #    not const.float_eq(p2[0], startp[0])
+    #    or not const.float_eq(p2[1], startp[1])
+    # ):
+    if close and startp and not point.almost_equal(p2, startp):
         a += (p2[0] * startp[1]) - (startp[0] * p2[1])
 
-    return -a / 2
+    return a / 2
 
 
 def area_triangle(
@@ -509,11 +512,12 @@ def intersect_line(  # noqa: PLR0912 pylint: disable=too-many-branches
 def is_closed(polygon: Sequence[TPoint]) -> bool:
     """Test if the polygon is closed.
 
-    I.e. if the first vertice matches the last vertice.
+    I.e. if the first vertex matches the last vertex.
     """
-    x1, y1 = polygon[0]
-    xn, yn = polygon[-1]
-    return const.float_eq(x1, xn) and const.float_eq(y1, yn)
+    return point.almost_equal(polygon[0], polygon[1])
+    # x1, y1 = polygon[0]
+    # xn, yn = polygon[-1]
+    # return const.float_eq(x1, xn) and const.float_eq(y1, yn)
 
 
 # This doesn't work of course...
@@ -761,7 +765,7 @@ def simplify_polyline_rdp(
 
 def simplify_polyline_vw(
     points: Iterable[TPoint], min_area: float
-) -> list[TPoint]:
+) -> list[P]:
     """Simplify a polyline.
 
     Uses Visvalingam-Whyatt algorithm.
@@ -853,7 +857,7 @@ def simplify_polyline_vw(
             triangle.tnext.p1 = triangle.p1
             triangle.tnext.update_area()
 
-    simpoly: list[TPoint] = [triangles[0].p1]
+    simpoly = [triangles[0].p1]
     simpoly.extend([t.p2 for t in triangles if t.area > min_area])
     simpoly.append(triangles[-1].p3)
     return simpoly
@@ -886,3 +890,7 @@ def is_inside(polygon1: Sequence[TPoint], polygon2: Iterable[TPoint]) -> bool:
     are non-intersecting and non-self-intersecting.
     """
     return all(point_inside(polygon1, p) for p in polygon2)
+
+def intersects(polygon1: Sequence[TPoint], polygon2: Iterable[TPoint]) -> bool:
+    """Does polygon1 intersect polygon2?"""
+    return any(point_inside(polygon1, p) for p in polygon2)

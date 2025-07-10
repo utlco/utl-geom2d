@@ -757,7 +757,7 @@ def _make_face(
         prev_node = curr_node
         curr_node = next_node
     # Discard open, inside-out (clockwise wound), or unbounded faces.
-    if next_node != start_node or polygon.area(face) > 0:
+    if next_node != start_node or polygon.area(face) < 0:
         return None
     return face
 

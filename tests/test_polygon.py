@@ -29,7 +29,42 @@ POLY1 = (
     (2.86579, 7.19138),
 )
 POLY1_AREA = 1.766671
-POLY1_CENTROID = (3.427692485125855, 7.23173736316392)
+POLY1_CENTROID = (3.427692, 7.231737)
+
+POLY2 = ((2, 2), (4, 2), (5, 1), (6, 4), (4, 5), (1, 4))
+POLY2_AREA = 11.5
+
+POLY3 = (
+    (5,2),
+    (6,3),
+    (6,4),
+    (4,5),
+    (3,4),
+    (3,2),
+    (2,2),
+    (2,4),
+    (3,6),
+    (6,6),
+    (7,5),
+    (7,4),
+    (6,2),
+)
+POLY4 = (
+    (5,2),
+    (5,0),
+    (4,0),
+    (4,1),
+    (3,1),
+    (3,2),
+    (2,2),
+    (2,4),
+    (3,6),
+    (6,6),
+    (7,5),
+    (7,4),
+    (6,2),
+)
+POLY4_AREA = -20.5
 
 SIMPOLY1 = [
     (2.86579, 7.19138),
@@ -59,30 +94,41 @@ STROKE_TO_PATH = [[
 ]]
 
 
+def test_polygon_turn() -> None:
+    assert polygon.turn((1, 1), (2, 4), (-1, 7)) == polygon.TURN_LEFT
+    assert polygon.turn((2, 2), (4, 2), (5, 1)) == polygon.TURN_RIGHT
+    assert polygon.turn((2, 2), (4, 2), (8, 2)) == 0
+    assert polygon.turn((8, 3), (2, 4), (1, 1)) == polygon.TURN_LEFT
+
+def test_polygon_winding() -> None:
+    assert polygon.winding(POLY3) == polygon.CW
+    assert polygon.winding(POLY3, close=False) == polygon.CW
+    assert polygon.winding(reversed(POLY3)) == polygon.CCW
+    assert polygon.winding(POLY4) == polygon.CW
+    assert polygon.winding(reversed(POLY4)) == polygon.CCW
+
 def test_polygon_area() -> None:
     """Test polygon.area function."""
-    area = polygon.area(POLY1)
-    assert const.float_eq(area, polygon.area(POLY1[:-1]), tolerance=TOLERANCE)
-    area_r = polygon.area(reversed(POLY1))
-    assert area < 0  # winding direction
-    assert area_r > 0  # winding direction
-    assert const.float_eq(
-        area_r, polygon.area(list(reversed(POLY1))[:-1]), tolerance=TOLERANCE
-    )
-    assert const.float_eq(abs(area), area_r, tolerance=TOLERANCE)
-    assert const.float_eq(abs(area), POLY1_AREA, tolerance=TOLERANCE)
+    assert const.float_eq(POLY1_AREA, polygon.area(POLY1), tolerance=TOLERANCE)
+    assert const.float_eq(POLY1_AREA, polygon.area(POLY1[:-1]), tolerance=TOLERANCE)
+
+    assert const.float_eq(-POLY1_AREA, polygon.area(reversed(POLY1)), tolerance=TOLERANCE)
+
+    assert polygon.area(POLY2) == POLY2_AREA
+    assert polygon.area(POLY4) == POLY4_AREA
 
 
 def test_polygon_centroid() -> None:
     """Test polygon.centroid function."""
     c = polygon.centroid(POLY1)
-    assert point.P(c) == point.P(POLY1_CENTROID)
+    assert point.almost_equal(c, POLY1_CENTROID, tolerance=TOLERANCE)
 
     c = polygon.centroid(POLY1[:1])
-    assert point.P(c) == point.P(POLY1[0])
+    assert point.almost_equal(c, POLY1[0], tolerance=TOLERANCE)
 
     c = polygon.centroid(POLY1[:2])
-    assert point.P(c) == geom2d.Line(POLY1[0], POLY1[1]).midpoint()
+    mp = geom2d.Line(POLY1[0], POLY1[1]).midpoint()
+    assert point.almost_equal(c, mp, tolerance=TOLERANCE)
 
 
 def test_simplify_vw() -> None:
