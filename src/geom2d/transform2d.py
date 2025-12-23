@@ -15,9 +15,7 @@ if TYPE_CHECKING:
 
 from . import const
 
-TMatrix: TypeAlias = tuple[
-    tuple[float, float, float], tuple[float, float, float]
-]
+TMatrix: TypeAlias = tuple[tuple[float, float, float], tuple[float, float, float]]
 
 # :2D transform identity matrix
 IDENTITY_MATRIX = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0))
@@ -60,6 +58,9 @@ def compose_transform(m1: TMatrix, m2: TMatrix) -> TMatrix:
         m1: 2X3 2D transform matrix.
         m2: 2X3 2D transform matrix.
 
+    Returns:
+        A transform matrix.
+
     Note:
         `m2` is applied before (to) `m1`
     """
@@ -81,9 +82,27 @@ def compose_transform(m1: TMatrix, m2: TMatrix) -> TMatrix:
     )
 
 
-def matrix_rotate(
-    angle: float, origin: Sequence[float] | None = None
-) -> TMatrix:
+def compose_transforms(*matrices: TMatrix) -> TMatrix | None:
+    """Compose multiple transforms.
+
+    Args:
+        matrices: One or more matrices as positional arguments.
+
+    Returns:
+        A transform matrix, or None if no matrices or all matrices are None.
+        Each subsequent transform is applied to the accumulated composition
+        of the previous transforms.
+    """
+    transform: TMatrix | None = None
+    for m in matrices:
+        if not transform:
+            transform = m
+        elif m:
+            transform = compose_transform(transform, m)
+    return transform
+
+
+def matrix_rotate(angle: float, origin: Sequence[float] | None = None) -> TMatrix:
     """Create a transform matrix to rotate about the origin.
 
     Args:
@@ -177,9 +196,7 @@ def matrix_skew_y(angle: float) -> TMatrix:
     return ((1.0, 0.0, 0.0), (math.tan(angle), 1.0, 0.0))
 
 
-def matrix_apply_to_point(
-    m: TMatrix, p: Sequence[float]
-) -> tuple[float, float]:
+def matrix_apply_to_point(m: TMatrix, p: Sequence[float]) -> tuple[float, float]:
     """Return a copy of `p` with the transform matrix applied to it."""
     return (
         m[0][0] * p[0] + m[0][1] * p[1] + m[0][2],

@@ -36,8 +36,8 @@ def _is_point(seg: TSeg) -> bool:
 
 def draw_path(
     path: Iterable[TSeg],
-    color: str = '#ff0000',
-    width: str | float = '1px',
+    color: str = "#ff0000",
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
 ) -> None:
@@ -46,7 +46,7 @@ def draw_path(
     for seg in path:
         if lastp and _is_point(seg):
             debug.draw_line(
-                (lastp, typing.cast(point.TPoint, seg)),
+                (lastp, typing.cast("point.TPoint", seg)),
                 color=color,
                 width=width,
                 opacity=opacity,
@@ -59,8 +59,8 @@ def draw_path(
 
 def draw_segment(
     seg: TSeg,
-    color: str = '#c00000',
-    width: str | float = '1px',
+    color: str = "#c00000",
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
 ) -> point.TPoint | None:
@@ -71,13 +71,13 @@ def draw_segment(
         and isinstance(seg[0], Sequence)
     ):
         debug.draw_arc(
-            typing.cast(arc.Arc, seg),
+            typing.cast("arc.Arc", seg),
             color=color,
             width=width,
             opacity=opacity,
             verbose=verbose,
         )
-        return typing.cast(point.TPoint, seg[1])
+        return typing.cast("point.TPoint", seg[1])
 
     if isinstance(seg, line.Line) or (
         isinstance(seg, Sequence)
@@ -85,20 +85,18 @@ def draw_segment(
         and isinstance(seg[0], Sequence)
     ):
         debug.draw_line(
-            typing.cast(line.TLine, seg),
+            typing.cast("line.TLine", seg),
             color=color,
             width=width,
             opacity=opacity,
             verbose=verbose,
         )
-        return typing.cast(point.TPoint, seg[1])
+        return typing.cast("point.TPoint", seg[1])
 
     if _is_point(seg):
         # Not actually a segment, but just in case...
-        debug.draw_point(
-            typing.cast(point.TPoint, seg), color=color, opacity=opacity
-        )
-        return typing.cast(point.TPoint, seg)
+        debug.draw_point(typing.cast("point.TPoint", seg), color=color, opacity=opacity)
+        return typing.cast("point.TPoint", seg)
 
     if isinstance(seg, ellipse.EllipticalArc):
         ellipse.draw_ellipse(

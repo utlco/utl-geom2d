@@ -146,7 +146,6 @@ select = [
     "YTT",
 ]
 extend-ignore = [
-    "ANN101", # self annotated... good grief
     #"UP006",
     #"UP007", # use X | Y type annot
     "D107", # Missing docstring in `__init__`

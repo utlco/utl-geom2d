@@ -209,9 +209,7 @@ class VoronoiDiagram:
             )
         )
 
-    def _compute_voronoi(
-        self, input_points: Sequence[TPoint], delaunay: bool
-    ) -> None:
+    def _compute_voronoi(self, input_points: Sequence[TPoint], delaunay: bool) -> None:
         """Create the Voronoi diagram.
 
         Args:
@@ -532,9 +530,7 @@ class _HalfEdge:
             and other.vertex
             and (
                 self.ystar > other.ystar
-                or (
-                    self.vertex.x > other.vertex.x and self.ystar == other.ystar
-                )
+                or (self.vertex.x > other.vertex.x and self.ystar == other.ystar)
             )
         )
 
@@ -571,9 +567,7 @@ class _HalfEdge:
             dyp = site.y - topsite.y
             dxp = site.x - topsite.x
             fast = False
-            if (not right_of_site and edge.b < 0) or (
-                right_of_site and edge.b >= 0
-            ):
+            if (not right_of_site and edge.b < 0) or (right_of_site and edge.b >= 0):
                 above = dyp >= edge.b * dxp
                 fast = above
             else:
@@ -687,21 +681,18 @@ class _EdgeList:
         if half_edge:
             # Now search linear list of halfedges for the correct one
             if half_edge is self.leftend or (
-                half_edge is not self.rightend
-                and half_edge.is_left_of_site(site)
+                half_edge is not self.rightend and half_edge.is_left_of_site(site)
             ):
                 half_edge = half_edge.right
-                while (
-                    half_edge is not self.rightend
-                    and half_edge.is_left_of_site(site)
+                while half_edge is not self.rightend and half_edge.is_left_of_site(
+                    site
                 ):
                     half_edge = half_edge.right
                 half_edge = half_edge.left
             else:
                 half_edge = half_edge.left
-                while (
-                    half_edge is not self.leftend
-                    and not half_edge.is_left_of_site(site)
+                while half_edge is not self.leftend and not half_edge.is_left_of_site(
+                    site
                 ):
                     half_edge = half_edge.left
 

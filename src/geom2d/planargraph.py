@@ -67,9 +67,7 @@ class GraphNode:
         """
         i = 0
         ref_point = P(self.vertex.x + 1, self.vertex.y)
-        ccw_angle = normalize_angle(
-            self.vertex.angle2(ref_point, edge_node.vertex)
-        )
+        ccw_angle = normalize_angle(self.vertex.angle2(ref_point, edge_node.vertex))
         # Perform an online insertion sort
         if self.edge_angles:
             for i, angle in enumerate(self.edge_angles):
@@ -94,9 +92,7 @@ class GraphNode:
 
         self.edge_nodes.sort(key=sortkey)
 
-    def ccw_edge_node(
-        self, ref_node: GraphNode, skip_spikes: bool = True
-    ) -> GraphNode:
+    def ccw_edge_node(self, ref_node: GraphNode, skip_spikes: bool = True) -> GraphNode:
         """The most CCW edge node.
 
         Starting at the reference edge defined by ref_node->this_node.
@@ -133,7 +129,7 @@ class GraphNode:
 
     def __str__(self) -> str:
         """For debug output..."""
-        return f'{self.vertex} [{len(self.edge_nodes):d}]'
+        return f"{self.vertex} [{len(self.edge_nodes):d}]"
 
 
 TNodeMap: TypeAlias = dict[P, GraphNode]
@@ -223,9 +219,7 @@ class Graph:
             del self.nodemap[p2]
         self.edges.remove(Line(edge))
 
-    def add_poly(
-        self, vertices: Sequence[TPoint], close_poly: bool = True
-    ) -> None:
+    def add_poly(self, vertices: Sequence[TPoint], close_poly: bool = True) -> None:
         """Add polygon edges to this graph.
 
         Args:
@@ -288,9 +282,7 @@ class Graph:
             # Find the bottom-most node to start polygon march
             bottom_node = self._find_bottom_node(nodemap.values())
             # Get a new boundary polygon from peeled nodes
-            boundary_polygon = self._build_boundary_polygon(
-                bottom_node, len(nodemap)
-            )
+            boundary_polygon = self._build_boundary_polygon(bottom_node, len(nodemap))
             if len(boundary_polygon) > 2:
                 poly_list.append(boundary_polygon)
             # Peel the next layer
@@ -380,9 +372,7 @@ class Graph:
                 node.edge_nodes.append(nodemap_copy[edge_node.vertex])
         return nodemap_copy
 
-    def _prune_nodes(
-        self, nodemap: TNodeMap, boundary_polygon: Sequence[P]
-    ) -> None:
+    def _prune_nodes(self, nodemap: TNodeMap, boundary_polygon: Sequence[P]) -> None:
         """Prune a layer of graph nodes.
 
         Prune the nodes corresponding to the list of points
@@ -405,9 +395,7 @@ class Graph:
         # Remove any dead-end spike nodes
         while True:
             # List of vertices that will be deleted from the node map.
-            deleted_nodes = [
-                node for node in nodemap.values() if node.degree() < 2
-            ]
+            deleted_nodes = [node for node in nodemap.values() if node.degree() < 2]
             if not deleted_nodes:
                 break
             for node in deleted_nodes:
@@ -467,179 +455,6 @@ class PathStrategy(enum.IntEnum):
     SQUIGGLY = enum.auto()
     RANDOM = enum.auto()
     RANDOM2 = enum.auto()
-
-
-class GraphPathBuilder:
-    """Create paths from connected graph edges.
-
-    Given a Graph, build a set of paths made of connected graph edges.
-    """
-
-    graph: Graph
-    _random: random.Random
-
-    def __init__(self, graph: Graph) -> None:
-        self.graph = graph
-        self._random = random.Random()
-        self._random.seed()
-
-    def build_paths(
-        self,
-        start_edge: Line | None = None,
-        path_strategy: PathStrategy = PathStrategy.STRAIGHTEST,
-    ) -> list[list[P]]:
-        """Build edge paths.
-
-        Given the starting edge, find the set of edge paths that
-        completely fill the graph...
-
-        Args:
-            start_edge: The graph edge that starts the path.
-            path_strategy: How paths will be constructed. Possible
-                path strategies are:
-
-                    STRAIGHTEST, SQUIGGLY,
-                    RANDOM, and RANDOM2
-
-        Returns:
-            A list of paths sorted by descending order of path length.
-        """
-        if start_edge is None:
-            start_edge = self._random.choice(list(self.graph.edges))
-        paths = []
-        free_edges = set(self.graph.edges)
-        visited_edges: set[Line] = set()
-        while free_edges:
-            path = self._build_path(start_edge, visited_edges, path_strategy)
-            paths.append(path)
-            free_edges -= visited_edges
-            if free_edges:
-                start_edge = self._random.choice(list(free_edges))
-        # paths.sort(key=len, reverse=True)
-        return paths
-
-    def build_longest_paths(
-        self,
-        path_strategy: PathStrategy = PathStrategy.STRAIGHTEST,
-    ) -> list[list[P]]:
-        """Find the longest paths in this graph."""
-        path_list = []
-        for start_edge in self.graph.edges:
-            visited_edges: set[Line] = set()
-            path = self._build_path(start_edge, visited_edges, path_strategy)
-            path_list.append(path)
-        path_list.sort(key=len, reverse=True)
-        return self._dedupe_paths(path_list)
-
-    def _build_path(
-        self,
-        start_edge: Line,
-        visited_edges: set[Line],
-        path_strategy: PathStrategy,
-    ) -> list[P]:
-        """Build a path from the starting edge.
-
-        Try both directions and glue the paths together.
-        """
-        node_a = self.graph.nodemap[start_edge[0]]
-        node_b = self.graph.nodemap[start_edge[1]]
-        path = self._build_path_forward(
-            node_a, node_b, visited_edges, path_strategy
-        )
-        path_rev = self._build_path_forward(
-            node_b, node_a, visited_edges, path_strategy
-        )
-        if len(path_rev) > 2:
-            path.reverse()
-            path.extend(path_rev[2:])
-        return path
-
-    def _build_path_forward(
-        self,
-        prev_node: GraphNode,
-        curr_node: GraphNode,
-        visited_edges: set[Line],
-        path_strategy: PathStrategy,
-    ) -> list[P]:
-        """Build a forward path.
-
-        Starting at the specified node, follow outgoing edges until
-        its no longer possible. Sort of a half-assed Euler tour...
-        """
-        path = [prev_node.vertex]
-        next_node: GraphNode | None = curr_node
-        while next_node:
-            path.append(next_node.vertex)
-            curr_node = next_node
-            next_node = self._get_exit_edge_node(
-                prev_node, curr_node, visited_edges, path_strategy
-            )
-            edge = Line(prev_node.vertex, curr_node.vertex)
-            visited_edges.add(edge)
-            prev_node = curr_node
-        return path
-
-    def _get_exit_edge_node(
-        self,
-        prev_node: GraphNode,
-        curr_node: GraphNode,
-        visited_edges: set[Line],
-        path_strategy: PathStrategy,
-    ) -> GraphNode | None:
-        """Find an exit node that satisfies the path strategy.
-
-        If all exit nodes define edges that have been already visited
-        then return None.
-        """
-        if curr_node.degree() == 1:
-            # End of the line...
-            return None
-
-        # List of potential exit nodes from the current node.
-        exit_node_list = []
-        for exit_node in curr_node.edge_nodes:
-            if exit_node != prev_node:
-                edge = Line(curr_node.vertex, exit_node.vertex)
-                if edge not in visited_edges:
-                    exit_node_list.append(exit_node)
-
-        if exit_node_list:
-            # Sort the exit nodes in order of angular distance
-            # from incoming edge.
-            def sortkey(node: GraphNode) -> float:
-                return abs(
-                    curr_node.vertex.angle2(prev_node.vertex, node.vertex)
-                )
-
-            exit_node_list.sort(key=sortkey, reverse=True)
-            if path_strategy == PathStrategy.SQUIGGLY:
-                exit_node = exit_node_list[-1]
-            elif path_strategy == PathStrategy.RANDOM:
-                exit_node = self._random.choice(exit_node_list)
-            elif path_strategy == PathStrategy.RANDOM2:
-                # A random choice weighted towards straighter paths
-                exit_node_list.insert(0, exit_node_list[0])
-                exit_node = self._random.choice(exit_node_list[0:3])
-            else:
-                exit_node = exit_node_list[0]
-            return exit_node
-
-        return None
-
-    def _dedupe_paths(
-        self, path_list: list[list[P]], min_difference: int = 2
-    ) -> list[list[P]]:
-        """Remove similar paths from a list of paths."""
-        deduped_path_list = [
-            path_list[0],
-        ]
-        prev_path = path_list[0]
-        for path in path_list[1:]:
-            pathset = frozenset(prev_path)
-            if len(pathset.difference(path)) > min_difference:
-                deduped_path_list.append(path)
-            prev_path = path
-        return deduped_path_list
 
 
 class MarkedEdge:
@@ -706,9 +521,7 @@ class MarkedEdgeMap:
         marked_edge.visited_left(p2)
 
 
-def _make_face_polygons(
-    edges: Iterable[Line], nodemap: TNodeMap
-) -> list[list[P]]:
+def _make_face_polygons(edges: Iterable[Line], nodemap: TNodeMap) -> list[list[P]]:
     """Given a graph, make polygons from graph faces delineated by edges.
 
     Args:
@@ -776,3 +589,200 @@ def find_free_edge_node(
         if not edge.visited_left(edge_node.vertex) and edge_node.degree() > 1:
             return edge_node
     return None
+
+
+class GraphPathBuilder:
+    """Create paths from connected graph edges.
+
+    This version is more deterministic.
+
+    Given a Graph, build a set of paths made of connected graph edges.
+    """
+
+    graph: Graph
+    _random: random.Random
+
+    def __init__(self, graph: Graph, random_seed: float | None = None) -> None:
+        self.graph = graph
+        self._random = random.Random(random_seed)
+
+    def build_paths(
+        self,
+        start_edge: Line | None = None,
+        random_start: bool = False,
+        path_strategy: PathStrategy = PathStrategy.STRAIGHTEST,
+        max_path_len: int | None = None,
+        hull_poly: list[P] | None = None,
+    ) -> list[list[P]]:
+        """Build edge paths.
+
+        Given the starting edge, find the set of edge paths that
+        completely fill the graph...
+
+        Args:
+            start_edge: The graph edge that starts the path.
+            random_start: Choose a random starting edge.
+            path_strategy: How paths will be constructed. Possible
+                path strategies are:
+
+                    STRAIGHTEST, SQUIGGLY
+
+            max_path_len: Maximimum number of segments in path.
+                Default is no limit.
+            hull_poly: Optional outer hull polygon that stops the
+                path building once it intersects the hull.
+
+        Returns:
+            A list of paths.
+        """
+        if start_edge is None:
+            if random_start:
+                start_edge = self._random.choice(list(self.graph.edges))
+            else:
+                start_edge = next(iter(self.graph.edges), None)
+        paths = []
+        free_edges = set(self.graph.edges)
+        visited_edges: set[Line] = set()
+        hull_points = set(hull_poly) if hull_poly else None
+        while start_edge and free_edges:
+            path = self._build_path(
+                start_edge, visited_edges, path_strategy, max_path_len, hull_points
+            )
+            paths.append(path)
+            free_edges -= visited_edges
+            if free_edges:
+                start_edge = next(iter(free_edges), None)
+        return paths
+
+    def build_longest_paths(
+        self,
+        path_strategy: PathStrategy = PathStrategy.STRAIGHTEST,
+    ) -> list[list[P]]:
+        """Find the longest paths in this graph."""
+        path_list = []
+        for start_edge in self.graph.edges:
+            visited_edges: set[Line] = set()
+            path = self._build_path(start_edge, visited_edges, path_strategy)
+            path_list.append(path)
+        path_list.sort(key=len, reverse=True)
+        return self._dedupe_paths(path_list)
+
+    def _build_path(
+        self,
+        start_edge: Line,
+        visited_edges: set[Line],
+        path_strategy: PathStrategy,
+        max_path_len: int | None = None,
+        hull_points: set[P] | None = None,
+    ) -> list[P]:
+        """Build a path from the starting edge.
+
+        Try both directions and glue the paths together.
+        """
+        node_a = self.graph.nodemap[start_edge[0]]
+        node_b = self.graph.nodemap[start_edge[1]]
+        # Try in forward direction
+        path = self._build_path_forward(
+            node_a, node_b, visited_edges, path_strategy, max_path_len, hull_points
+        )
+        # Try in reverse direction
+        path_rev = self._build_path_forward(
+            node_b, node_a, visited_edges, path_strategy, max_path_len, hull_points
+        )
+        if len(path_rev) > 2:
+            # Concatenate forward and reverse
+            path.reverse()
+            path.extend(path_rev[2:])
+        return path
+
+    def _build_path_forward(
+        self,
+        prev_node: GraphNode,
+        curr_node: GraphNode,
+        visited_edges: set[Line],
+        path_strategy: PathStrategy,
+        max_path_len: int | None = None,
+        hull_points: set[P] | None = None,
+    ) -> list[P]:
+        """Build a forward path.
+
+        Starting at the specified node, follow outgoing edges until
+        its no longer possible. Sort of a half-assed Euler tour...
+        """
+        path = [prev_node.vertex]
+        next_node: GraphNode | None = curr_node
+        while next_node and (not max_path_len or len(path) <= max_path_len):
+            path.append(next_node.vertex)
+            curr_node = next_node
+            next_node = self._get_exit_edge_node(
+                prev_node, curr_node, visited_edges, path_strategy, hull_points
+            )
+            edge = Line(prev_node.vertex, curr_node.vertex)
+            visited_edges.add(edge)
+            prev_node = curr_node
+        return path
+
+    def _get_exit_edge_node(
+        self,
+        prev_node: GraphNode,
+        curr_node: GraphNode,
+        visited_edges: set[Line],
+        path_strategy: PathStrategy,
+        hull_points: set[P] | None = None,
+    ) -> GraphNode | None:
+        """Find an exit node that satisfies the path strategy.
+
+        If all exit nodes define edges that have been already visited
+        then return None.
+        """
+        if curr_node.degree() == 1 or (hull_points and curr_node.vertex in hull_points):
+            # End of the line...
+            return None
+
+        # List of potential exit nodes from the current node.
+        exit_node_list = []
+        for exit_node in curr_node.edge_nodes:
+            if exit_node != prev_node:
+                edge = Line(curr_node.vertex, exit_node.vertex)
+                if edge not in visited_edges:
+                    exit_node_list.append(exit_node)
+
+        if exit_node_list:
+            # Sort the exit nodes in order of angular distance
+            # from incoming edge.
+            def sortkey(node: GraphNode) -> float:
+                return abs(curr_node.vertex.angle2(prev_node.vertex, node.vertex))
+
+            exit_node_list.sort(key=sortkey, reverse=True)
+            if path_strategy == PathStrategy.SQUIGGLY:
+                exit_node = exit_node_list[-1]
+            elif path_strategy == PathStrategy.RANDOM:
+                exit_node = self._random.choice(exit_node_list)
+            elif path_strategy == PathStrategy.RANDOM2:
+                # A random choice weighted towards straighter paths
+                exit_node_list.insert(0, exit_node_list[0])
+                exit_node = self._random.choice(exit_node_list[0:3])
+            else:
+                exit_node = exit_node_list[0]
+            return exit_node
+
+        return None
+
+    def _dedupe_paths(
+        self, path_list: list[list[P]], min_difference: int = 2
+    ) -> list[list[P]]:
+        """Remove similar paths from a list of paths."""
+        deduped_path_list = [
+            path_list[0],
+        ]
+        prev_path = path_list[0]
+        for path in path_list[1:]:
+            pathset = frozenset(prev_path)
+            if len(pathset.difference(path)) > min_difference:
+                deduped_path_list.append(path)
+            prev_path = path
+        return deduped_path_list
+
+
+def _segment_touches_hull(seg: Line, hull_points: set[P]) -> bool:
+    return seg[0] in hull_points or seg[1] in hull_points

@@ -234,12 +234,10 @@ class Ellipse:
         # TODO: implement this.
         # See:
         # http://atrey.karlin.mff.cuni.cz/projekty/vrr/doc/man/progman/Elliptic-arcs.html
-        raise RuntimeError('not implemented.')
+        raise RuntimeError("not implemented.")
 
 
-def _normalize_axis(
-    rx: float, ry: float, phi: float
-) -> tuple[float, float, float]:
+def _normalize_axis(rx: float, ry: float, phi: float) -> tuple[float, float, float]:
     """Normalize radii and axis so rx is always semi-major."""
     rx = abs(rx)
     ry = abs(ry)
@@ -507,7 +505,7 @@ class EllipticalArc(Ellipse):
         # TODO: implement this.
         # See:
         # http://atrey.karlin.mff.cuni.cz/projekty/vrr/doc/man/progman/Elliptic-arcs.html
-        raise RuntimeError('not implemented.')
+        raise RuntimeError("not implemented.")
 
     def to_svg_path(
         self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
@@ -529,38 +527,38 @@ class EllipticalArc(Ellipse):
         """
         ff = util.float_formatter()
 
-        prefix = 'A ' if add_prefix or add_move else ''
+        prefix = "A " if add_prefix or add_move else ""
         if add_move:
             p1 = self.p1 * scale
-            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+            prefix = f"M {ff(p1.x)},{ff(p1.y)} {prefix}"
 
         rx = self.rx * scale
         ry = self.ry * scale
         p2 = self.p2 * scale
         return (
-            f'{prefix}{ff(rx)},{ff(ry)} {ff(math.degrees(self.phi))}'
-            f' {self.large_arc} {self.sweep_flag} {ff(p2.x)},{ff(p2.y)}'
+            f"{prefix}{ff(rx)},{ff(ry)} {ff(math.degrees(self.phi))}"
+            f" {self.large_arc} {self.sweep_flag} {ff(p2.x)},{ff(p2.y)}"
         )
 
     def __str__(self) -> str:
         """Convert this EllipticalArc to a readable string."""
         ff = util.float_formatter()
         return (
-            f'EllipticalArc({self.p1}, {self.p2}, '
-            f'{ff(self.rx)}, {ff(self.ry)}, {ff(self.phi)}, '
-            f'{self.large_arc}, {self.sweep_flag}, '
-            f'{ff(self.start_angle)}, {ff(self.sweep_angle)}, '
-            f'{self.center})'
+            f"EllipticalArc({self.p1}, {self.p2}, "
+            f"{ff(self.rx)}, {ff(self.ry)}, {ff(self.phi)}, "
+            f"{self.large_arc}, {self.sweep_flag}, "
+            f"{ff(self.start_angle)}, {ff(self.sweep_angle)}, "
+            f"{self.center})"
         )
 
     def __repr__(self) -> str:
         """Convert this EllipticalArc to a readable string."""
         return (
-            f'EllipticalArc({self.p1!r}, {self.p2!r}, '
-            f'{self.rx!r}, {self.ry!r}, {self.phi!r}, '
-            f'{self.large_arc}, {self.sweep_flag}, '
-            f'{self.start_angle!r}, {self.sweep_angle!r}, '
-            f'{self.center!r})'
+            f"EllipticalArc({self.p1!r}, {self.p2!r}, "
+            f"{self.rx!r}, {self.ry!r}, {self.phi!r}, "
+            f"{self.large_arc}, {self.sweep_flag}, "
+            f"{self.start_angle!r}, {self.sweep_angle!r}, "
+            f"{self.center!r})"
         )
 
     def __eq__(self, other: object) -> bool:
@@ -650,13 +648,7 @@ def ellipse_in_parallelogram(
     D = -2 * k * k * h * v
     E = 2 * k * h * v * (d - h)
     F = k * h * h * v * v
-    T1 = (
-        (A * E * E)
-        + (B * D * D)
-        + (4 * F * C * C)
-        - (2 * C * D * E)
-        - (4 * A * B * F)
-    )
+    T1 = (A * E * E) + (B * D * D) + (4 * F * C * C) - (2 * C * D * E) - (4 * A * B * F)
     T2 = 2 * (A * B - C * C)
     T3 = math.sqrt((B - A) * (B - A) + (4 * C * C))
     # Calculate semi-major axis
@@ -818,8 +810,8 @@ if const.DEBUG or TYPE_CHECKING:
 
 def draw_ellipse(
     ellipse: Ellipse,
-    color: str = '#cccc99',
-    width: str | float = '1px',
+    color: str = "#cccc99",
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
     svg_context: SVGContext | None = None,

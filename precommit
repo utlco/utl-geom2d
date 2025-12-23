@@ -9,9 +9,10 @@
 #
 #     cargo install typos-cli
 #
-BLACK="black -q"
-MYPY="mypy --no-error-summary"
-RUFF="ruff check"
+#BLACK="black -q"
+BLACK="uv run ruff format"
+MYPY="uv run mypy --no-error-summary"
+RUFF="uv run ruff check"
 
 # pylint is very slow, and is largely superseded by ruff
 # which is about 100 times faster.

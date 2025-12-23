@@ -553,3 +553,11 @@ def _test_hash(max_hashes: int, min_xy: float, max_xy: float) -> None:
         hashes.add(h)
 
     assert len(hashes) == len(points)
+
+    p1 = P(1017.7163859753387, 958.0190453784681)
+    p2 = P(1017.7163859753388, 958.0190453784684)
+    const.set_epsilon(1e-8)
+    h1 = hash(p1)
+    h2 = hash(p2)
+    assert h1 == h2
+

@@ -52,3 +52,4 @@ def _float_eq_t(n: float) -> None:
         scaled_epsilon = abs(n) * const.EPSILON
         assert float_eq(n, n + scaled_epsilon / 10)
         assert not float_eq(n, n + scaled_epsilon + scaled_epsilon / 10)
+

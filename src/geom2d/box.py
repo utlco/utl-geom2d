@@ -27,8 +27,8 @@ def bounding_box(points: Iterable[TPoint]) -> Box:
 
     :param points: an iterable collection of point 2-tuples (x,y).
     """
-    xmin, ymin = typing.cast(tuple[float, float], map(min, zip(*points)))
-    xmax, ymax = typing.cast(tuple[float, float], map(max, zip(*points)))
+    xmin, ymin = typing.cast("tuple[float, float]", map(min, zip(*points)))
+    xmax, ymax = typing.cast("tuple[float, float]", map(max, zip(*points)))
     return Box(P(xmin, ymin), P(xmax, ymax))
 
 
@@ -56,7 +56,8 @@ class Box(tuple[P, P]):
         x2 = max(p1[0], p2[0])  # type: ignore [index, type-var]
         y2 = max(p1[1], p2[1])  # type: ignore [index, type-var]
         return tuple.__new__(
-            cls, (P(x1, y1), P(x2, y2))  # type: ignore [type-var, arg-type]
+            cls,
+            (P(x1, y1), P(x2, y2)),  # type: ignore [type-var, arg-type]
         )
 
     @staticmethod
@@ -268,14 +269,14 @@ class Box(tuple[P, P]):
         if const.is_zero(b):
             # Line is vertical
             if const.is_zero(a):
-                raise ValueError('both a and b cannot be zero')
+                raise ValueError("both a and b cannot be zero")
             x = c / a
             if self.p1.x <= x <= self.p2.x:
                 return Line((x, self.p1.y), (x, self.p2.y))
         elif const.is_zero(a):
             # Line is horizontal
             if const.is_zero(b):
-                raise ValueError('both a and b cannot be zero')
+                raise ValueError("both a and b cannot be zero")
             y = c / b
             if self.p1.y <= y <= self.p2.y:
                 return Line((self.p1.x, y), (self.p2.x, y))
@@ -351,7 +352,9 @@ class Box(tuple[P, P]):
 
 # pylint: disable=invalid-name
 def _lbclip_helper(
-    nQ: float, nP: float, u_minmax: list[float]  # noqa: N803
+    nQ: float,  # noqa: N803
+    nP: float,  # noqa: N803
+    u_minmax: list[float],
 ) -> bool:
     """Lian-Barsky helper."""
     if const.is_zero(nP):

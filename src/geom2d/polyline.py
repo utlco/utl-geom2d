@@ -73,10 +73,7 @@ def polypath_length(polypath: Iterable[TLine]) -> float:
 def polyline_length(polyline: Iterable[TPoint]) -> float:
     """Total cumulative length of polyline."""
     return float(
-        sum(
-            math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-            for p1, p2 in pairwise(polyline)
-        )
+        sum(math.hypot(p2[0] - p1[0], p2[1] - p1[1]) for p1, p2 in pairwise(polyline))
     )
 
 

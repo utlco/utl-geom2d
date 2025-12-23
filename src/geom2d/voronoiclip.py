@@ -15,9 +15,7 @@ if TYPE_CHECKING:
     from .voronoi import VoronoiDiagram
 
 
-def clip_voronoi_segments(
-    diagram: VoronoiDiagram, clip_rect: Box
-) -> list[Line]:
+def clip_voronoi_segments(diagram: VoronoiDiagram, clip_rect: Box) -> list[Line]:
     """Clip a voronoi diagram to a clipping rectangle.
 
     Args:

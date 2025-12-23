@@ -16,7 +16,7 @@ from . import const
 # Debug drawing is effectively disabled if this is None (default).
 svg_context: SVGContext | None = None  # pylint: disable=invalid-name
 
-_DEFAULT_COLOR = '#f00'
+_DEFAULT_COLOR = "#f00"
 
 
 def set_svg_context(context: SVGContext) -> None:
@@ -42,7 +42,7 @@ def debug(*args) -> None:  # noqa: ANN002
 def draw_point(
     point: Sequence[float],
     color: str = _DEFAULT_COLOR,
-    width: str | float = '4px',
+    width: str | float = "4px",
     opacity: float = 1,
 ) -> None:
     """Draw a dot. Useful for debugging and testing."""
@@ -52,14 +52,14 @@ def draw_point(
     svg_context.create_circle(
         point,
         svg_context.unit2uu(width) / 2,
-        style=f'fill:{color};stroke:none;opacity:{opacity:.3f}',
+        style=f"fill:{color};stroke:none;opacity:{opacity:.3f}",
     )
 
 
 def draw_line(
     line: Sequence[Sequence[float]],
     color: str = _DEFAULT_COLOR,
-    width: str | float = '1px',
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
 ) -> None:
@@ -77,7 +77,7 @@ def draw_line(
 def draw_poly(
     vertices: Sequence[Sequence[float]],
     color: str = _DEFAULT_COLOR,
-    width: str | float = '1px',
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
     close_poly: bool = True,
@@ -96,7 +96,7 @@ def draw_poly(
 def draw_arc(
     arc: tuple[Sequence[float], Sequence[float], float, float, Sequence[float]],
     color: str = _DEFAULT_COLOR,
-    width: str | float = '1px',
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
 ) -> None:
@@ -118,17 +118,17 @@ def draw_arc(
     if verbose:
         # Draw the center-arc wedge
         draw_point(center, color=color)
-        draw_line((center, p1), color='#ffc0e0')
-        draw_line((center, p2), color='#ffc0e0')
-        draw_point(p1, color='#cc99cc')
-        draw_point(p2, color='#99cccc')
+        draw_line((center, p1), color="#ffc0e0")
+        draw_line((center, p2), color="#ffc0e0")
+        draw_point(p1, color="#cc99cc")
+        draw_point(p2, color="#99cccc")
 
 
 def draw_circle(
     center: Sequence[float],
     radius: float,
     color: str = _DEFAULT_COLOR,
-    width: str | float = '1px',
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
 ) -> None:
@@ -144,14 +144,14 @@ def draw_circle(
 
 def linestyle(
     color: str = _DEFAULT_COLOR,
-    width: str | float = '1px',
+    width: str | float = "1px",
     opacity: float = 1.0,
 ) -> str:
     """Create an SVG line style using the specified attributes."""
     assert svg_context
     uuwidth = svg_context.unit2uu(width)
     return (
-        f'fill:none;stroke:{color};'
-        f'stroke-width:{uuwidth:.3f};'
-        f'stroke-opacity:{opacity:.3f}'
+        f"fill:none;stroke:{color};"
+        f"stroke-width:{uuwidth:.3f};"
+        f"stroke-opacity:{opacity:.3f}"
     )

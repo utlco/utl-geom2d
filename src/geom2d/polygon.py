@@ -48,6 +48,12 @@ except ImportError:
 TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
 CCW, CW, STRAIGHT = (1, -1, 0)
 
+# Clipper uses ints so floats need to be converted
+# without losing too much precision.
+# const.EPSILON_PRECISION is not used since it can be changed
+# by the user to quite small values.
+_CLIPPER_SCALE = 1e8
+
 
 def turn(p: TPoint, q: TPoint, r: TPoint) -> int:
     """Determine relative direction of point.
@@ -113,9 +119,7 @@ def convex_hull_chan(points: list[TPoint]) -> list[P]:
     # for m in (1 << (1 << t) for t in range(len(points))):
     hull: list[P] = []
     for m in ((1 << t) for t in range(len(points))):
-        hulls = [
-            convex_hull(points[i : i + m]) for i in range(0, len(points), m)
-        ]
+        hulls = [convex_hull(points[i : i + m]) for i in range(0, len(points), m)]
         hull_pairs = [_min_hull_pt_pair(hulls)]
         for _ in range(m):
             h, i = _next_hull_pt_pair(hulls, hull_pairs[-1])
@@ -174,9 +178,7 @@ def _dist2(p1: TPoint, p2: TPoint) -> float:
     return (a * a) + (b * b)
 
 
-def _next_hull_pt_pair(
-    hulls: list[list[P]], pair: tuple[int, int]
-) -> tuple[int, int]:
+def _next_hull_pt_pair(hulls: list[list[P]], pair: tuple[int, int]) -> tuple[int, int]:
     """(hull, point) index pair of the next point in the convex hull."""
     p = hulls[pair[0]][pair[1]]
     nextpair = (pair[0], (pair[1] + 1) % len(hulls[pair[0]]))
@@ -366,9 +368,7 @@ def centroid(vertices: Sequence[TPoint]) -> P:
 # pylint: enable=line-too-long
 
 
-def point_inside(
-    polygon: Sequence[TPoint], p: TPoint, edge_ok: bool = False
-) -> bool:
+def point_inside(polygon: Sequence[TPoint], p: TPoint, edge_ok: bool = False) -> bool:
     """Test if point is inside a closed polygon.
 
     See:
@@ -397,7 +397,7 @@ def point_inside(
         polygon: polygon vertices. A list of 2-tuple (x, y) points.
         p: Point to test.
         edge_ok: Point is considered inside if it lies on a vertex
-            or an edge segment.
+            or an edge segment. Default is False.
 
     Returns:
         True if the point lies inside the polygon, else False.
@@ -573,7 +573,7 @@ def poly_stroke_to_path(
         jointype: The type of joins for offset vertices.
         endtype: The type of end caps.
         limit: The max distance to a offset vertice before it
-            will be squared off.
+            will be squared off. 0 means no limit.
 
     If the stroke is a closed polygon then two closed sub-paths will be returned,
     allowing a fillable SVG entity defined by an inner and outer polygon..
@@ -602,14 +602,14 @@ def offset_polygons(
         offset: The amount to offset (can be negative).
         jointype: The type of joins for offset vertices.
         limit: The max distance to a offset vertice before it
-            will be squared off.
+            will be squared off. 0 means no limit.
 
     Returns:
         Zero or more offset polygons as a list of 2-tuple vertices.
         If the specified offset cannot be performed for the input polygon
         an empty list will be returned.
     """
-    mult = 10**const.EPSILON_PRECISION
+    mult = _CLIPPER_SCALE  # 10**const.EPSILON_PRECISION
     offset *= mult
     limit *= mult
     clipper_poly = poly2clipper(poly)
@@ -644,14 +644,14 @@ def offset_polyline(
         jointype: The type of joins for offset vertices.
         endtype: The type of end caps for polylines.
         limit: The max distance to a offset vertice before it
-            will be squared off.
+            will be squared off. 0 means no limit.
 
     Returns:
         Zero or more offset polygons as a list of 2-tuple vertices.
         If the specified offset cannot be performed for the input polygon
         an empty list will be returned.
     """
-    mult = 10**const.EPSILON_PRECISION
+    mult = _CLIPPER_SCALE  # 10**const.EPSILON_PRECISION
     offset *= mult
     limit *= mult
     clipper_poly = poly2clipper(poly)
@@ -677,7 +677,8 @@ def poly2clipper(poly: Iterable[TPoint]) -> list[clipper.Point]:
         A Clipper polygon which is a list of integer coordinates.
     """
     clipper_poly = []
-    mult = 10**const.EPSILON_PRECISION
+    # Clipper uses integers
+    mult = _CLIPPER_SCALE  # 10**const.EPSILON_PRECISION
     for p in poly:
         x = int(p[0] * mult)
         y = int(p[1] * mult)
@@ -698,10 +699,10 @@ def clipper2poly(clipper_poly: Iterable[clipper.Point]) -> list[P]:
         A list of floating point coordinates.
     """
     poly = []
-    mult = 10**const.EPSILON_PRECISION
+    mult = _CLIPPER_SCALE  # 10**const.EPSILON_PRECISION
     for p in clipper_poly:
-        x = float(p.x) / mult
-        y = float(p.y) / mult
+        x = float(p.x / mult)
+        y = float(p.y / mult)
         poly.append(P(x, y))
     # Close the polygon
     if len(poly) > 2 and poly[0] != poly[-1]:
@@ -709,9 +710,7 @@ def clipper2poly(clipper_poly: Iterable[clipper.Point]) -> list[P]:
     return poly
 
 
-def simplify_polyline_rdp(
-    points: Sequence[TPoint], tolerance: float
-) -> list[P]:
+def simplify_polyline_rdp(points: Sequence[TPoint], tolerance: float) -> list[P]:
     """Simplify a polyline.
 
     A polyline is a sequence of vertices.
@@ -751,9 +750,7 @@ def simplify_polyline_rdp(
             return [P(p) for p in points]
         # Divide the polyline at the max distance point and
         # recursively get the simplified sub-polylines.
-        simplified1 = simplify_polyline_rdp(
-            points[: (dmax_index + 1)], tolerance
-        )
+        simplified1 = simplify_polyline_rdp(points[: (dmax_index + 1)], tolerance)
         simplified2 = simplify_polyline_rdp(points[dmax_index:], tolerance)
         simplified1.extend(simplified2[1:])
         return simplified1
@@ -763,9 +760,7 @@ def simplify_polyline_rdp(
     return [chord.p1, chord.p2]
 
 
-def simplify_polyline_vw(
-    points: Iterable[TPoint], min_area: float
-) -> list[P]:
+def simplify_polyline_vw(points: Iterable[TPoint], min_area: float) -> list[P]:
     """Simplify a polyline.
 
     Uses Visvalingam-Whyatt algorithm.
@@ -857,9 +852,9 @@ def simplify_polyline_vw(
             triangle.tnext.p1 = triangle.p1
             triangle.tnext.update_area()
 
-    simpoly = [triangles[0].p1]
-    simpoly.extend([t.p2 for t in triangles if t.area > min_area])
-    simpoly.append(triangles[-1].p3)
+    simpoly = [P(triangles[0].p1)]
+    simpoly.extend([P(t.p2) for t in triangles if t.area > min_area])
+    simpoly.append(P(triangles[-1].p3))
     return simpoly
 
 
@@ -876,10 +871,7 @@ def simplify_polyline_vw(
 def length(polyline: Iterable[TPoint]) -> float:
     """The total length of a polyline/polygon."""
     return float(
-        sum(
-            math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-            for p1, p2 in pairwise(polyline)
-        )
+        sum(math.hypot(p2[0] - p1[0], p2[1] - p1[1]) for p1, p2 in pairwise(polyline))
     )
 
 
@@ -890,6 +882,7 @@ def is_inside(polygon1: Sequence[TPoint], polygon2: Iterable[TPoint]) -> bool:
     are non-intersecting and non-self-intersecting.
     """
     return all(point_inside(polygon1, p) for p in polygon2)
+
 
 def intersects(polygon1: Sequence[TPoint], polygon2: Iterable[TPoint]) -> bool:
     """Does polygon1 intersect polygon2?"""

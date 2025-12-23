@@ -67,16 +67,16 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             d2 = p2.distance(center)
             # Check for consistent radius
             if not const.float_eq(d1, d2):
-                debug.draw_point(p1, color='#ff0000')
-                debug.draw_point(p2, color='#00ff00')
-                debug.draw_point(center, color='#ffff00')
+                debug.draw_point(p1, color="#ff0000")
+                debug.draw_point(p2, color="#00ff00")
+                debug.draw_point(center, color="#ffff00")
                 debug.debug(
-                    'Bad arc: '
-                    f'd1={d1} != d2={d2}, '
-                    f'p1={p1} p2={p2} radius={radius} center={center} '
-                    f'angle={angle} center={center}'
+                    "Bad arc: "
+                    f"d1={d1} != d2={d2}, "
+                    f"p1={p1} p2={p2} radius={radius} center={center} "
+                    f"angle={angle} center={center}"
                 )
-                raise ValueError('bad arc')
+                raise ValueError("bad arc")
             assert const.float_eq(d1, radius)
             assert -TAU < angle < TAU
             # this test only works for angle < +-PI
@@ -121,15 +121,13 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
                 angle = (-TAU if angle < 0 else TAU) - angle
             return Arc(p1, p2, (d1 + d2) / 2, angle, center)
         if const.DEBUG:
-            debug.draw_point(p1, color='#ff0000')
-            debug.draw_point(p2, color='#00ff00')
-            debug.draw_point(center, color='#ffff00')
+            debug.draw_point(p1, color="#ff0000")
+            debug.draw_point(p2, color="#00ff00")
+            debug.draw_point(center, color="#ffff00")
             debug.debug(
-                'Bad arc: '
-                f'd1={d1} != d2={d2}, '
-                f'p1={p1} p2={p2} center={center} '
+                f"Bad arc: d1={d1} != d2={d2}, p1={p1} p2={p2} center={center} "
             )
-            raise ValueError('bad arc')
+            raise ValueError("bad arc")
         return None
 
     @staticmethod
@@ -363,7 +361,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             new_radius = self.radius + distance
             if new_radius < 0 or const.is_zero(new_radius):
                 raise ValueError(
-                    f'Cannot offset arc of radius {self.radius} by {distance}.'
+                    f"Cannot offset arc of radius {self.radius} by {distance}."
                 )
             line1 = Line(self.center, self.p1).extend(distance)
             line2 = Line(self.center, self.p2).extend(distance)
@@ -381,9 +379,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         offset_p1 = self.p1 + dxdy
         offset_p2 = self.p2 + dxdy
         offset_center = self.center + dxdy
-        return Arc(
-            offset_p1, offset_p2, self.radius, self.angle, center=offset_center
-        )
+        return Arc(offset_p1, offset_p2, self.radius, self.angle, center=offset_center)
 
     def distance_to_point(self, p: TPoint, segment: bool = True) -> float:
         """Distance from this arc to point.
@@ -546,8 +542,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         arc2 = Arc(p, self.p2, self.radius, angle2, self.center)
         return (arc1, arc2)
 
-
-    def extend(self, amount: float, from_midpoint: bool = False) -> Line:
+    def extend(self, amount: float, from_midpoint: bool = False) -> Arc:
         """Extend/shrink arc distance.
 
         An arc segment that is longer (or shorter) than this line by
@@ -646,9 +641,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             )
         return False
 
-    def normal_projection_point(
-        self, p: TPoint, segment: bool = False
-    ) -> P | None:
+    def normal_projection_point(self, p: TPoint, segment: bool = False) -> P | None:
         """Normal projection of point p to this arc."""
         ray = Line(self.center, p)
         intersections = self.intersect_line(ray, on_arc=segment)
@@ -754,9 +747,7 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
             A list containing zero, one, or two intersections.
         """
         intersections = list(
-            ellipse.intersect_circle(
-                self.center, self.radius, arc.center, arc.radius
-            )
+            ellipse.intersect_circle(self.center, self.radius, arc.center, arc.radius)
         )
         # Delete intersections that don't lie on the arc segments.
         if on_arc and intersections:
@@ -779,17 +770,17 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
     def __str__(self) -> str:
         """Convert this Arc to a readable string."""
         return (
-            f'Arc({self.p1}, {self.p2}, '
-            f'{self.radius:.{const.EPSILON_PRECISION}f}, '
-            f'{self.angle:.{const.EPSILON_PRECISION}f}, '
-            f'{self.center})'
+            f"Arc({self.p1}, {self.p2}, "
+            f"{self.radius:.{const.EPSILON_PRECISION}f}, "
+            f"{self.angle:.{const.EPSILON_PRECISION}f}, "
+            f"{self.center})"
         )
 
     def __repr__(self) -> str:
         """Convert this Arc to a string."""
         return (
-            f'Arc({self.p1!r}, {self.p2!r}, {self.radius!r}, '
-            f'{self.angle!r}, {self.center!r})'
+            f"Arc({self.p1!r}, {self.p2!r}, {self.radius!r}, "
+            f"{self.angle!r}, {self.center!r})"
         )
 
     def __eq__(self, other: object) -> bool:
@@ -835,17 +826,17 @@ class Arc(tuple[P, P, float, float, P]):  # noqa: SLOT001
         """
         ff = util.float_formatter()
 
-        prefix = 'A ' if add_prefix or add_move else ''
+        prefix = "A " if add_prefix or add_move else ""
         if add_move:
             p1 = self.p1 * scale
-            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+            prefix = f"M {ff(p1.x)},{ff(p1.y)} {prefix}"
 
         radius = self.radius * scale
         p2 = self.p2 * scale
         return (
-            f'{prefix}{ff(radius)},{ff(radius)}'
-            f' 0 {self.large_arc_flag} {self.sweep_flag}'
-            f' {ff(p2.x)},{ff(p2.y)}'
+            f"{prefix}{ff(radius)},{ff(radius)}"
+            f" 0 {self.large_arc_flag} {self.sweep_flag}"
+            f" {ff(p2.x)},{ff(p2.y)}"
         )
 
 

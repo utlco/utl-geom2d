@@ -48,8 +48,8 @@ def float_formatter(
     if precision is None:
         # Assign here instead of kwarg because theoretically mutable
         precision = const.EPSILON_PRECISION
-    fmt = f'{{:.{precision}f}}'
-    return lambda x: fmt.format(x * scale).rstrip('0').rstrip('.')
+    fmt = f"{{:.{precision}f}}"
+    return lambda x: fmt.format(x * scale).rstrip("0").rstrip(".")
 
 
 def normalize_angle(angle: float, center: float = math.pi) -> float:
@@ -69,9 +69,7 @@ def normalize_angle(angle: float, center: float = math.pi) -> float:
         An angle value in radians between 0 and 2 * PI if center == PI,
         otherwise a value between -PI and PI if center == 0.
     """
-    return angle - (
-        const.TAU * math.floor((angle + math.pi - center) / const.TAU)
-    )
+    return angle - (const.TAU * math.floor((angle + math.pi - center) / const.TAU))
 
 
 def calc_rotation(start_angle: float, end_angle: float) -> float:
@@ -122,8 +120,11 @@ def segments_are_g1(
         # G1 continuity -> G0 + segment end points share tangent
         # td = seg1.end_tangent_angle() - seg2.start_tangent_angle()
         # return abs(td) < tolerance
+        angle_tolerance = tolerance * 10
         return const.float_eq(
-            seg1.end_tangent_angle(), seg2.start_tangent_angle()
+            seg1.end_tangent_angle(),
+            seg2.start_tangent_angle(),
+            tolerance=angle_tolerance,
         )
     return False
 

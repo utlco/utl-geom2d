@@ -20,7 +20,7 @@ import math
 import os
 import sys
 
-DEBUG = bool(os.environ.get('DEBUG', os.environ.get('GEOM2D_DEBUG')))
+DEBUG = bool(os.environ.get("DEBUG", os.environ.get("GEOM2D_DEBUG")))
 
 TAU: float = math.pi * 2.0
 """Commonly used constant 2 * *pi*."""

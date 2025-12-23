@@ -29,16 +29,16 @@ class Line(tuple[P, P]):  # noqa: SLOT001
 
     # __slots__ = ()
 
-    def __new__(
-        cls, p1: TPoint | Sequence[TPoint], p2: TPoint | None = None
-    ) -> Self:
+    def __new__(cls, p1: TPoint | Sequence[TPoint], p2: TPoint | None = None) -> Self:
         """Create new line segment from points."""
         if p2 is None:
             return super().__new__(
-                cls, (P(p1[0]), P(p1[1]))  # type: ignore [type-var, arg-type]
+                cls,
+                (P(p1[0]), P(p1[1])),  # type: ignore [type-var, arg-type]
             )
         return super().__new__(
-            cls, (P(p1), P(p2))  # type: ignore [type-var, arg-type]
+            cls,
+            (P(p1), P(p2)),  # type: ignore [type-var, arg-type]
         )
 
     @staticmethod
@@ -80,7 +80,7 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             return 0.0
         if const.is_zero(dx):
             # Vertical line
-            return float('nan')
+            return float("nan")
         return dy / dx
 
     def slope_intercept(self) -> tuple[float, float]:
@@ -254,9 +254,7 @@ class Line(tuple[P, P]):  # noqa: SLOT001
         """
         v1 = self.p2 - self.p1
         x, y = p
-        u = v1.normal_projection(
-            (x - self.p1[0], y - self.p1[1])
-        )  # p - self.p1
+        u = v1.normal_projection((x - self.p1[0], y - self.p1[1]))  # p - self.p1
         if segment:
             if u <= 0:
                 return self.p1
@@ -455,7 +453,7 @@ class Line(tuple[P, P]):  # noqa: SLOT001
         """
         length = self.length()
         if length == 0.0:  # const.is_zero(length):
-            raise ValueError('Cannot extend line of zero length.')
+            raise ValueError("Cannot extend line of zero length.")
         #         x1, y1 = self[0]
         #         x2, y2 = self[1]
         #         if from_midpoint:
@@ -557,9 +555,7 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             x2, y2 = self.p2
             return (min(x1, x2) - const.EPSILON) <= p[0] <= (
                 max(x1, x2) + const.EPSILON
-            ) and (min(y1, y2) - const.EPSILON) <= p[1] <= (
-                max(y1, y2) + const.EPSILON
-            )
+            ) and (min(y1, y2) - const.EPSILON) <= p[1] <= (max(y1, y2) + const.EPSILON)
         return is_collinear
 
     def path_reversed(self) -> Line:
@@ -611,11 +607,11 @@ class Line(tuple[P, P]):  # noqa: SLOT001
 
     def __str__(self) -> str:
         """Concise string representation."""
-        return f'Line({self.p1}, {self.p2})'
+        return f"Line({self.p1}, {self.p2})"
 
     def __repr__(self) -> str:
         """Precise string representation."""
-        return f'Line({self.p1!r}, {self.p2!r})'
+        return f"Line({self.p1!r}, {self.p2!r})"
 
     def to_svg_path(
         self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
@@ -632,8 +628,8 @@ class Line(tuple[P, P]):  # noqa: SLOT001
             that corresponds with this line.
         """
         ff = util.float_formatter()
-        mp = 'M ' if add_move else ('L ' if add_prefix else '')
-        lp = 'L ' if add_prefix else ''
-        p1 = f'{mp}{ff(self.p1.x * scale)},{ff(self.p1.y * scale)}'
-        p2 = f'{lp}{ff(self.p2.x * scale)},{ff(self.p2.y * scale)}'
-        return f'{p1} {p2}'
+        mp = "M " if add_move else ("L " if add_prefix else "")
+        lp = "L " if add_prefix else ""
+        p1 = f"{mp}{ff(self.p1.x * scale)},{ff(self.p1.y * scale)}"
+        p2 = f"{lp}{ff(self.p2.x * scale)},{ff(self.p2.y * scale)}"
+        return f"{p1} {p2}"

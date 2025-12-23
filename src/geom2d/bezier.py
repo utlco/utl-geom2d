@@ -45,7 +45,8 @@ class CubicBezier(tuple[P, P, P, P]):
     def __new__(cls, p1: TPoint, c1: TPoint, c2: TPoint, p2: TPoint) -> Self:
         """Create a new CubicBezier object."""
         return super().__new__(
-            cls, (P(p1), P(c1), P(c2), P(p2))  # type: ignore [arg-type]
+            cls,
+            (P(p1), P(c1), P(c2), P(p2)),  # type: ignore [arg-type]
         )  # type: ignore [type-var]
 
     @staticmethod
@@ -200,7 +201,7 @@ class CubicBezier(tuple[P, P, P, P]):
             A tuple of one or two CubicBezier objects.
         """
         if t < 0 or t > 1:
-            raise ValueError(f't={t}')
+            raise ValueError(f"t={t}")
         cp0, cp1, p, cp2, cp3 = self.controlpoints_at(t)
         curve1 = CubicBezier(self.p1, cp0, cp1, p)
         curve2 = CubicBezier(p, cp2, cp3, self.p2)
@@ -316,9 +317,7 @@ class CubicBezier(tuple[P, P, P, P]):
             return (t1, t2) if t1 <= t2 or t2 < 0 else (t2, t1)
         return t2, t1
 
-    def find_extrema_align(
-        self, calc_bbox: bool = True
-    ) -> tuple[tuple, tuple | None]:
+    def find_extrema_align(self, calc_bbox: bool = True) -> tuple[tuple, tuple | None]:
         """Find the extremities of the curve.
 
         As if a chord connecting the end points is parallel to the X axis.
@@ -348,16 +347,12 @@ class CubicBezier(tuple[P, P, P, P]):
         if not extrema_rot:
             return ((), None)
         # Rotate the extrema to match original curve
-        extrema = tuple(
-            p.rotate(chord.angle(), origin=chord.p1) for p in extrema_rot
-        )
+        extrema = tuple(p.rotate(chord.angle(), origin=chord.p1) for p in extrema_rot)
         extrema_rot.append(curve.p1)
         extrema_rot.append(curve.p2)
         if calc_bbox:
             bbox_rot = Box.from_points(extrema_rot).vertices()
-            bbox = tuple(
-                p.rotate(chord.angle(), origin=chord.p1) for p in bbox_rot
-            )
+            bbox = tuple(p.rotate(chord.angle(), origin=chord.p1) for p in bbox_rot)
         else:
             bbox = None
         return (extrema, bbox)
@@ -703,24 +698,19 @@ class CubicBezier(tuple[P, P, P, P]):
         c1 = self.c1 if self.c1 != self.p1 else self.c2
         c2 = self.c2 if self.c2 != self.p2 else self.c1
         arc1 = Arc.from_two_points_and_tangent(self.p1, c1, pjoint)
-        arc2 = Arc.from_two_points_and_tangent(
-            self.p2, c2, pjoint, reverse=True
-        )
+        arc2 = Arc.from_two_points_and_tangent(self.p2, c2, pjoint, reverse=True)
         assert arc1
         assert arc2
-        if const.DEBUG:
-            if not const.angle_eq(
-                arc1.end_tangent_angle(), arc2.start_tangent_angle()
-            ):
+        if const.DEBUG:  # noqa: SIM102
+            if not const.angle_eq(arc1.end_tangent_angle(), arc2.start_tangent_angle()):
                 debug.debug(
-                    f'a1={arc1.end_tangent_angle()}, '
-                    f'a2={arc2.start_tangent_angle()}'
+                    f"a1={arc1.end_tangent_angle()}, a2={arc2.start_tangent_angle()}"
                 )
-                debug.draw_arc(arc1, color='#ff0000')
-                debug.draw_arc(arc2, color='#ff0000')
-            else:
-                debug.draw_arc(arc1)
-                debug.draw_arc(arc2)
+                debug.draw_arc(arc1, color="#ff0000")
+                debug.draw_arc(arc2, color="#ff0000")
+            # else:
+            #    debug.draw_arc(arc1)
+            #    debug.draw_arc(arc2)
 
         if _recurs_depth < max_depth and (
             not self._check_hausdorff(arc2, 0.5, 1.0, tolerance)
@@ -737,9 +727,7 @@ class CubicBezier(tuple[P, P, P, P]):
         # they happen to have the same radius.
         if const.float_eq(arc1.radius, arc2.radius):
             assert const.float_eq(arc1.angle, arc2.angle)
-            arc = Arc(
-                arc1.p1, arc2.p2, arc1.radius, arc1.angle * 2, arc1.center
-            )
+            arc = Arc(arc1.p1, arc2.p2, arc1.radius, arc1.angle * 2, arc1.center)
             return [arc]
 
         # Biarc is within tolerance or recursion limit has been reached.
@@ -886,13 +874,11 @@ class CubicBezier(tuple[P, P, P, P]):
 
     def __str__(self) -> str:
         """Concise string representation."""
-        return f'CubicBezier({self.p1}, {self.c1}, {self.c2}, {self.p2})'
+        return f"CubicBezier({self.p1}, {self.c1}, {self.c2}, {self.p2})"
 
     def __repr__(self) -> str:
         """Concise string representation."""
-        return (
-            f'CubicBezier({self.p1!r}, {self.c1!r}, {self.c2!r}, {self.p2!r})'
-        )
+        return f"CubicBezier({self.p1!r}, {self.c1!r}, {self.c2!r}, {self.p2!r})"
 
     def to_svg_path(
         self, scale: float = 1, add_prefix: bool = True, add_move: bool = False
@@ -910,17 +896,16 @@ class CubicBezier(tuple[P, P, P, P]):
         """
         ff = util.float_formatter()
 
-        prefix = 'C ' if add_prefix or add_move else ''
+        prefix = "C " if add_prefix or add_move else ""
         if add_move:
             p1 = self.p1 * scale
-            prefix = f'M {ff(p1.x)},{ff(p1.y)} {prefix}'
+            prefix = f"M {ff(p1.x)},{ff(p1.y)} {prefix}"
 
         c1 = self.c1 * scale
         c2 = self.c2 * scale
         p2 = self.p2 * scale
         return (
-            f'{prefix}{ff(c1.x)},{ff(c1.y)}'
-            f' {ff(c2.x)},{ff(c2.y)} {ff(p2.x)},{ff(p2.y)}'
+            f"{prefix}{ff(c1.x)},{ff(c1.y)} {ff(c2.x)},{ff(c2.y)} {ff(p2.x)},{ff(p2.y)}"
         )
 
 
@@ -1004,9 +989,7 @@ def _bezier_circle(
     x, y = center
     b1 = CubicBezier((x, a + y), (h + x, c + y), (c + x, h + y), (a + x, y))
     b2 = CubicBezier((a + x, y), (c + x, -h + y), (h + x, -c + y), (x, -a + y))
-    b3 = CubicBezier(
-        (x, -a + y), (-h + x, -c + y), (-c + x, -h + y), (-a + x, y)
-    )
+    b3 = CubicBezier((x, -a + y), (-h + x, -c + y), (-c + x, -h + y), (-a + x, y))
     b4 = CubicBezier((-a + x, y), (-c + x, h + y), (-h + x, c + y), (x, a + y))
     return b1, b2, b3, b4
 
@@ -1226,9 +1209,12 @@ def bezier_sine_wave(
     for i in range(cycles):
         t = transform2d.matrix_translate(wavelength * i + origin[0], origin[1])
         t = transform2d.compose_transform(trot, t)
-        sine_path.extend(
-            (q0.transform(t), q1.transform(t), q2.transform(t), q3.transform(t))
-        )
+        sine_path.extend((
+            q0.transform(t),
+            q1.transform(t),
+            q2.transform(t),
+            q3.transform(t),
+        ))
     return sine_path
 
 
@@ -1365,9 +1351,7 @@ def smooth_path(
         elif isinstance(seg2, CubicBezier):
             biarc_path = seg2.biarc_approximation()
             for bseg2 in biarc_path:
-                curve, cp1 = smoothing_curve(
-                    seg1, bseg2, cp1, smoothness=smoothness
-                )
+                curve, cp1 = smoothing_curve(seg1, bseg2, cp1, smoothness=smoothness)
                 if curve.p1 != curve.p2:
                     sm_path.append(curve)
                 seg1 = bseg2
@@ -1431,8 +1415,8 @@ def path_biarc_approximation(
 
 def draw_bezier(
     curve: CubicBezier | Sequence[TPoint],
-    color: str = '#ff0000',
-    width: str | float = '1px',
+    color: str = "#ff0000",
+    width: str | float = "1px",
     opacity: float = 1,
     verbose: bool = False,
     svg_context: SVGContext | None = None,
@@ -1452,8 +1436,8 @@ def draw_bezier(
     svg_context.create_curve(curve, style=style)
     if verbose:
         # Draw control points and tangents
-        debug.draw_point(c1, color='#0000c0')
-        debug.draw_point(c2, color='#0000c0')
+        debug.draw_point(c1, color="#0000c0")
+        debug.draw_point(c2, color="#0000c0")
         debug.draw_line((p1, c1))
         debug.draw_line((p2, c2))
         if not isinstance(curve, CubicBezier):
@@ -1462,8 +1446,8 @@ def draw_bezier(
         t1, t2 = curve.roots()
         # debug.debug(f'roots {t1} {t2}')
         if t1 > 0.0:
-            debug.draw_point(curve.point_at(t1), color='#c00000')
+            debug.draw_point(curve.point_at(t1), color="#c00000")
         if t2 > 0.0:
-            debug.draw_point(curve.point_at(t2), color='#c00000')
+            debug.draw_point(curve.point_at(t2), color="#c00000")
         # Draw midpoint
         # debug.draw_point(curve.point_at(0.5), color='#00ff00')

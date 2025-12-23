@@ -55,9 +55,7 @@ def max_xy() -> float:
 #    # return h * (10.0 ** const.EPSILON_PRECISION)
 
 
-def almost_equal(
-    p1: TPoint, p2: TPoint, tolerance: float | None = None
-) -> bool:
+def almost_equal(p1: TPoint, p2: TPoint, tolerance: float | None = None) -> bool:
     """Compare points for geometric equality.
 
     Args:
@@ -73,7 +71,7 @@ def almost_equal(
         tolerance = const.EPSILON  # Note: EPSILON is mutable
     dx = p1[0] - p2[0]
     dy = p1[1] - p2[1]
-    h2 = dx * dx + dy * dy
+    h2 = dx * dx + dy * dy  # Distance squared
     # return bool(h2 < (h2 * tolerance * tolerance))
     return bool(h2 < (tolerance * tolerance))
 
@@ -101,12 +99,11 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         if y is None:
             assert isinstance(x, Sequence)
             # assume x is a tuple[float, float]
-            return tuple.__new__(
-                cls, ((float(x[0]), float(x[1])))
-            )  # type: ignore [type-var]
+            return tuple.__new__(cls, ((float(x[0]), float(x[1]))))  # type: ignore [type-var]
         # assume x is float, y is float
         return tuple.__new__(
-            cls, ((float(x), float(y)))  # type: ignore [arg-type]
+            cls,
+            ((float(x), float(y))),  # type: ignore [arg-type]
         )  # type: ignore [type-var]
 
     @property
@@ -353,9 +350,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         a = self.angle2(p1, p2)
         return util.normalize_angle(a, center=math.pi)
 
-    def bisector(
-        self, p1: TPoint, p2: TPoint, mag: float = 1.0, winding: int = 0
-    ) -> P:
+    def bisector(self, p1: TPoint, p2: TPoint, mag: float = 1.0, winding: int = 0) -> P:
         """The bisector between the angle formed by p1->self->p2.
 
         The bisector will always be in the direction of the
@@ -426,9 +421,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         v1 = p2 - p1  # Normalize the line segment
         seglen = v1.length()  # Segment length
         if seglen < const.EPSILON:  # Degenerate line segment...?
-            return self.distance(
-                p1
-            )  # TBD: This should probably be undefined...
+            return self.distance(p1)  # TBD: This should probably be undefined...
 
         v2 = p1 - self
         return abs(v1.cross(v2) / seglen)
@@ -538,7 +531,7 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
     def to_svg(self, scale: float = 1) -> str:
         """SVG string representation."""
         ff = util.float_formatter()
-        return f'{ff(self.x * scale)},{ff(self.y * scale)}'
+        return f"{ff(self.x * scale)},{ff(self.y * scale)}"
 
     def copysign(self, v: tuple[float, float]) -> P:
         """Return a new point with x,y having the same sign as `v`.
@@ -551,8 +544,10 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
     def __eq__(self, other: object) -> bool:
         """Compare for equality.
 
-        Uses EPSILON to compare point values so that spatial hash tables
+        Compare point values so that spatial hash tables
         and other geometric comparisons work as expected.
+        Distance between the two points must less than EPSILON to be
+        considered equal.
         There may be cases where an exact compare is necessary but for
         most purposes (like collision detection) this works better.
 
@@ -561,9 +556,9 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         """
         return isinstance(other, Sequence) and almost_equal(self, other)
 
-    # def __ne__(self, other: object) -> bool:
-    #    """Compare for inequality."""
-    #    return not self == other
+    def __ne__(self, other: object) -> bool:
+        """Compare for inequality."""
+        return not self == other
 
     # def __bool__(self) -> bool:
     #    """Return True if this is not a null vector.
@@ -666,13 +661,13 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
     def __str__(self) -> str:
         """Concise string representation."""
         return (
-            f'({self[0]:.{const.EPSILON_PRECISION}f},'
-            f' {self[1]:.{const.EPSILON_PRECISION}f})'
+            f"({self[0]:.{const.EPSILON_PRECISION}f},"
+            f" {self[1]:.{const.EPSILON_PRECISION}f})"
         )
 
     def __repr__(self) -> str:
         """Precise string representation."""
-        return f'P({self[0]!r}, {self[1]!r})'
+        return f"P({self[0]!r}, {self[1]!r})"
 
     def __hash__(self) -> int:
         """Calculate a spatial hash value for this point.
@@ -694,8 +689,10 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         # b = int(round(self[1], const.EPSILON_PRECISION) * _HASH_PRIME_Y)
 
         repsilon: float = const.REPSILON
-        a: int = round(self[0] * repsilon * const.HASH_PRIME_X)
-        b: int = round(self[1] * repsilon * const.HASH_PRIME_Y)
+        # a: int = round(self[0] * repsilon * const.HASH_PRIME_X)
+        # b: int = round(self[1] * repsilon * const.HASH_PRIME_Y)
+        a: int = round(self[0] * repsilon) * const.HASH_PRIME_X
+        b: int = round(self[1] * repsilon) * const.HASH_PRIME_Y
 
         # Modulo a large prime that is less than max signed int.
         # The intent is to minimize collisions by creating a better

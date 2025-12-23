@@ -23,7 +23,7 @@ _DEBUG = False  # const.DEBUG
 if _DEBUG:
     from . import debug, plotpath
 
-_T = TypeVar('_T')
+_T = TypeVar("_T")
 
 
 def fillet_path(
@@ -50,9 +50,7 @@ def fillet_path(
         A new path with fillet arcs. If no fillets are created then
         the original path will be returned.
     """
-    return _fillet_path_iter(
-        _path_iter(path), radius, fillet_close, adjust_radius
-    )
+    return _fillet_path_iter(_path_iter(path), radius, fillet_close, adjust_radius)
 
 
 def fillet_polygon(
@@ -109,11 +107,11 @@ def _fillet_path_iter(
     path_iter = _PathLookahead(path_iter)
     seg1 = next(path_iter)
     if _DEBUG:
-        debug.draw_point(seg1.p1, color='#00ff00')
-        plotpath.draw_segment(seg1, color='#00ffff')
+        debug.draw_point(seg1.p1, color="#00ff00")
+        plotpath.draw_segment(seg1, color="#00ffff")
     for seg2 in path_iter:
         if _DEBUG:
-            plotpath.draw_segment(seg2, color='#00ffff')
+            plotpath.draw_segment(seg2, color="#00ffff")
         # Already G1?
         if const.float_eq(seg1.end_tangent_angle(), seg2.start_tangent_angle()):
             new_path.append(seg1)
@@ -138,9 +136,7 @@ def _fillet_path_iter(
 
     # Close the path with a fillet (if it is a closed path)
     if fillet_close and new_path[0].p1 == new_path[-1].p2:
-        new_segs = fillet_segments(
-            new_path[-1], new_path[0], radius, adjust_radius
-        )
+        new_segs = fillet_segments(new_path[-1], new_path[0], radius, adjust_radius)
         if new_segs:
             new_path[-1] = new_segs[0]
             new_path.append(new_segs[1])
@@ -204,9 +200,7 @@ def connect_fillet(
         else:
             # Connect Line->Fillet->Arc
             new_angle = seg2.angle - seg2.center.angle2(seg2.p1, farc.p2)
-            new_seg2 = Arc(
-                farc.p2, seg2.p2, seg2.radius, new_angle, seg2.center
-            )
+            new_seg2 = Arc(farc.p2, seg2.p2, seg2.radius, new_angle, seg2.center)
     else:
         new_angle = seg1.angle - seg1.center.angle2(farc.p1, seg1.p2)
         new_seg1 = Arc(seg1.p1, farc.p1, seg1.radius, new_angle, seg1.center)
@@ -216,9 +210,7 @@ def connect_fillet(
         else:
             # Connect Arc->Fillet->Arc
             new_angle = seg2.angle - seg2.center.angle2(seg2.p1, farc.p2)
-            new_seg2 = Arc(
-                farc.p2, seg2.p2, seg2.radius, new_angle, seg2.center
-            )
+            new_seg2 = Arc(farc.p2, seg2.p2, seg2.radius, new_angle, seg2.center)
 
     return (new_seg1, farc, new_seg2)
 
@@ -258,32 +250,28 @@ def create_fillet_arc(
     return None
 
 
-def _fillet_arc(
-    seg1: Line | Arc, seg2: Line | Arc, fillet_center: P
-) -> Arc | None:
+def _fillet_arc(seg1: Line | Arc, seg2: Line | Arc, fillet_center: P) -> Arc | None:
     """Construct the fillet arc."""
     # debug.draw_point(fillet_center, color='#ffff00')
     fp1 = seg1.normal_projection_point(fillet_center, segment=True)
     fp2 = seg2.normal_projection_point(fillet_center, segment=True)
     if _DEBUG:
         if fp1:
-            debug.draw_point(fp1, color='#ff0080')
+            debug.draw_point(fp1, color="#ff0080")
         if fp2:
-            debug.draw_point(fp2, color='#ff0080')
+            debug.draw_point(fp2, color="#ff0080")
 
     # fillet_arc: Arc | None = None
     if fp1 and fp2 and fp1 != fp2:
         fillet_arc = Arc.from_two_points_and_center(fp1, fp2, fillet_center)
         if _DEBUG and fillet_arc:
-            debug.draw_arc(fillet_arc, color='#ff0080')
+            debug.draw_arc(fillet_arc, color="#ff0080")
         return fillet_arc
 
     return None
 
 
-def _fillet_center(
-    seg1: Line | Arc, seg2: Line | Arc, radius: float
-) -> P | None:
+def _fillet_center(seg1: Line | Arc, seg2: Line | Arc, radius: float) -> P | None:
     """Find the fillet arc center point."""
     if isinstance(seg1, Line):
         if isinstance(seg2, Line):
@@ -319,9 +307,7 @@ def _fillet_center_line_arc(
     offset = radius * seg1.which_side(p)
     offset_seg1 = seg1.offset(offset)
     offset_seg2 = seg2.offset(offset * -seg2.direction())
-    intersections = offset_seg2.intersect_line(
-        offset_seg1, on_arc=True, on_line=True
-    )
+    intersections = offset_seg2.intersect_line(offset_seg1, on_arc=True, on_line=True)
     if intersections:
         fillet_center = intersections[0]
         if _DEBUG:
@@ -343,9 +329,7 @@ def _fillet_center_arc_line(
     offset_seg2 = seg2.offset(-offset)
     # debug.draw_arc(seg1, color='#0080ff')
     # debug.draw_line(seg2, color='#0080ff')
-    intersections = offset_seg1.intersect_line(
-        offset_seg2, on_arc=True, on_line=True
-    )
+    intersections = offset_seg1.intersect_line(offset_seg2, on_arc=True, on_line=True)
     if intersections:
         fillet_center = intersections[0]
         if _DEBUG:
@@ -373,9 +357,7 @@ def _fillet_center_arc_arc(
     return None
 
 
-def _adjusted_radius(
-    seg1: Line | Arc, seg2: Line | Arc, radius: float
-) -> float:
+def _adjusted_radius(seg1: Line | Arc, seg2: Line | Arc, radius: float) -> float:
     # For now this only works for line segments...
     if isinstance(seg1, Line) and isinstance(seg2, Line):
         # First see if the segments are long enough to
@@ -397,18 +379,18 @@ def _debug_draw_offsets(
     fillet_center: P | None,
     radius: float,
 ) -> None:
-    plotpath.draw_segment(offset_seg1, color='#ff8000')
-    plotpath.draw_segment(offset_seg2, color='#ff8000')
+    plotpath.draw_segment(offset_seg1, color="#ff8000")
+    plotpath.draw_segment(offset_seg2, color="#ff8000")
     if fillet_center:
-        debug.draw_circle(fillet_center, radius, color='#ff80ff')
+        debug.draw_circle(fillet_center, radius, color="#ff80ff")
         debug.draw_point(fillet_center)
 
 
 def _debug_draw_farc_endpoints(fp1: TPoint | None, fp2: TPoint | None) -> None:
     if fp1:
-        debug.draw_point(fp1, color='#ff0080')
+        debug.draw_point(fp1, color="#ff0080")
     if fp2:
-        debug.draw_point(fp2, color='#ff0080')
+        debug.draw_point(fp2, color="#ff0080")
 
 
 _marker = object()
