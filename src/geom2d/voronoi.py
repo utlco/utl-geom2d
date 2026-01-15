@@ -51,7 +51,7 @@ from collections.abc import Sequence
 from typing import NamedTuple
 
 #: Tolerance for floating point comparisons
-EPSILON = 1e-9
+EPSILON = 1e-8
 
 TPoint = Sequence[float]  # Union[tuple[float, float], list[float]]
 TLine = Sequence[TPoint]
@@ -92,7 +92,7 @@ class VoronoiEdge(NamedTuple):
     # as a 3-tuple (a, b, c)
     equation: TLineEq
     # The dual of this Voronoi edge
-    delaunay_edge: DelaunayEdge
+    delaunay_edge: DelaunayEdge | None
 
 
 class DelaunayTriangle(NamedTuple):
@@ -188,7 +188,7 @@ class VoronoiDiagram:
             )
             self._delaunay_edges.append(segment)
 
-    def _add_edge(self, edge: _Edge) -> None:
+    def _add_edge(self, edge: _Edge, delaunay: bool) -> None:
         p1 = None
         left_edge = edge.endpoints[_Edge.LEFT]
         if left_edge:
@@ -199,15 +199,19 @@ class VoronoiDiagram:
         if right_edge:
             p2 = self._vertices[right_edge.sitenum]
 
-        assert p1 or p2
-        self._voronoi_edges.append(
-            VoronoiEdge(
-                p1,
-                p2,
-                self._lines[edge.edgenum],
-                self._delaunay_edges[edge.edgenum],
+        #assert p1 or p2
+        # In some pathological cases neither p1 nor p2 can be calculated.
+        # TODO: look into why this is...
+        if p1 and p2:
+            delaunay_edge = self._delaunay_edges[edge.edgenum] if delaunay else None
+            self._voronoi_edges.append(
+                VoronoiEdge(
+                    p1,
+                    p2,
+                    self._lines[edge.edgenum],
+                    delaunay_edge,
+                )
             )
-        )
 
     def _compute_voronoi(self, input_points: Sequence[TPoint], delaunay: bool) -> None:
         """Create the Voronoi diagram.
@@ -249,7 +253,7 @@ class VoronoiDiagram:
         while halfedge is not edges.rightend:
             if halfedge:
                 if halfedge.edge:
-                    self._add_edge(halfedge.edge)
+                    self._add_edge(halfedge.edge, delaunay)
                 halfedge = halfedge.right
 
         self.input_bbox = (sites.xmin, sites.ymin), (sites.xmax, sites.ymax)
@@ -347,9 +351,9 @@ class VoronoiDiagram:
         assert lbnd.edge
         assert rbnd.edge
         if lbnd.edge.set_endpoint(lbnd.orientation, vertex):
-            self._add_edge(lbnd.edge)
+            self._add_edge(lbnd.edge, delaunay)
         if rbnd.edge.set_endpoint(rbnd.orientation, vertex):
-            self._add_edge(rbnd.edge)
+            self._add_edge(rbnd.edge, delaunay)
 
         # delete the lowest HalfEdge, remove all vertex events to do with the
         # right HalfEdge and delete the right HalfEdge
@@ -374,7 +378,7 @@ class VoronoiDiagram:
         # otherwise in pos 1.
         edges.insert(llbnd, bisector)
         if edge.set_endpoint(_Edge.RIGHT - orientation, vertex):
-            self._add_edge(edge)
+            self._add_edge(edge, delaunay)
 
         # if left HalfEdge and the new bisector don't intersect, then delete
         # the left HalfEdge, and reinsert it
@@ -434,13 +438,13 @@ class _SiteList(list[_Site]):
     def __init__(self, input_points: Sequence[TPoint]) -> None:
         """Points should be 2-tuples with x and y value."""
         super().__init__()
-        for i, p in enumerate(input_points):
-            site = _Site(p[0], p[1], i)
+        for i, (x, y) in enumerate(input_points):
+            site = _Site(x, y, i)
             self.append(site)
-            self.xmin = min(site.x, self.xmin)
-            self.ymin = min(site.y, self.ymin)
-            self.xmax = max(site.x, self.xmax)
-            self.ymax = max(site.y, self.ymax)
+            self.xmin = min(x, self.xmin)
+            self.ymin = min(y, self.ymin)
+            self.xmax = max(x, self.xmax)
+            self.ymax = max(y, self.ymax)
         self.sort(key=lambda site: (site.y, site.x))
 
 
@@ -806,10 +810,8 @@ def jiggle(point: TPoint) -> TPoint:
         A new jiggled point as a 2-tuple
     """
     x, y = point
-    norm_x = EPSILON * abs(x)
-    norm_y = EPSILON * abs(y)
-    sign = random.choice((-1, 1))
-    return (
-        x + random.uniform(norm_x * 10, norm_x * 100) * sign,
-        y + random.uniform(norm_y * 10, norm_y * 100) * sign,
-    )
+    norm_x = EPSILON * abs(x) * random.choice((-1, 1))
+    norm_y = EPSILON * abs(y) * random.choice((-1, 1))
+    offset_x = random.uniform(norm_x * 10, norm_x * 100)
+    offset_y = random.uniform(norm_y * 10, norm_y * 100)
+    return x + offset_x, y + offset_y

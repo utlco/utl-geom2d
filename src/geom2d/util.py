@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from . import const, point
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Sequence
+    from collections.abc import Callable, Iterable, Iterator, Sequence
 
     from .arc import Arc
     from .bezier import CubicBezier

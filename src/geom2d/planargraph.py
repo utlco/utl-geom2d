@@ -14,8 +14,7 @@ from .util import normalize_angle
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
-
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 
 class GraphNode:
@@ -244,8 +243,12 @@ class Graph:
         return len(self.edges)
 
     def vertices(self) -> Iterable[P]:
-        """Graph edge vertices."""
+        """Graph edge vertices (node points)."""
         return self.nodemap.keys()
+
+    def nodes(self) -> Iterable[GraphNode]:
+        """Graph nodes."""
+        return self.nodemap.values()
 
     def bounding_box(self) -> Box:
         """Get the bounding rectangle for this graph.
@@ -254,7 +257,7 @@ class Graph:
             A tuple containing two points ((x0, y0), (x1, y1))
             specifying bottom left and top right corners.
         """
-        mm = [(min(xy), max(xy)) for xy in zip(*self.vertices())]
+        mm = [(min(xy), max(xy)) for xy in zip(*self.vertices(), strict=True)]
         return Box((mm[0][0], mm[1][0]), (mm[0][1], mm[1][1]))
 
     def boundary_polygon(self) -> list[P]:
@@ -625,7 +628,10 @@ class GraphPathBuilder:
             path_strategy: How paths will be constructed. Possible
                 path strategies are:
 
-                    STRAIGHTEST, SQUIGGLY
+                    - PathStrategy.STRAIGHTEST
+                    - PathStrategy.SQUIGGLY
+                    - PathStrategy.RANDOM
+                    - PathStrategy.RANDOM2
 
             max_path_len: Maximimum number of segments in path.
                 Default is no limit.
@@ -636,6 +642,7 @@ class GraphPathBuilder:
             A list of paths.
         """
         if start_edge is None:
+            start_edge = next(iter(self.graph.edges), None)
             if random_start:
                 start_edge = self._random.choice(list(self.graph.edges))
             else:

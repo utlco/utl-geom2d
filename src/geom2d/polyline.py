@@ -16,7 +16,7 @@ from .point import P, TPoint
 from .util import pairwise
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 TPolyLine: TypeAlias = Sequence[TPoint]
 TPolyPath: TypeAlias = Sequence[TLine]

@@ -4,22 +4,22 @@ from __future__ import annotations
 
 import typing
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from . import arc, bezier, debug, ellipse, line, point
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
-TSeg: TypeAlias = Union[
-    Sequence[float],
-    Sequence[Sequence[float]],
-    point.P,
-    line.Line,
-    arc.Arc,
-    ellipse.Ellipse,
-    bezier.CubicBezier,
-]
+TSeg: TypeAlias = (
+    Sequence[float]
+    | Sequence[Sequence[float]]
+    | point.P
+    | line.Line
+    | arc.Arc
+    | ellipse.Ellipse
+    | bezier.CubicBezier
+)
 
 _POINT_LEN = 2
 _LINE_LEN = 2

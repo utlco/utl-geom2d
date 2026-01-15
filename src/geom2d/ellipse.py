@@ -602,9 +602,10 @@ def ellipse_in_parallelogram(
 
     :vertices: The four vertices of a parallelogram as a list of 2-tuples.
     :eccentricity: The eccentricity of the ellipse.
-        Where 0.0 >= `eccentricity` <= 1.0.
+        Where 0.0 >= `eccentricity` <= 2.0.
         If `eccentricity` == 1.0 then a special eccentricity value will
         be calculated to produce an ellipse of maximal area.
+        If eccentricity > 1.0 then it will get skinnier.
         The minimum eccentricity of 0.0 will produce a circle.
 
     :return: A tuple containing the semi-major and semi-minor axes
@@ -652,11 +653,13 @@ def ellipse_in_parallelogram(
     T2 = 2 * (A * B - C * C)
     T3 = math.sqrt((B - A) * (B - A) + (4 * C * C))
     # Calculate semi-major axis
-    a = math.sqrt(T1 / (T2 * ((A + B) - T3)))
+    rx = math.sqrt(T1 / (T2 * ((A + B) - T3)))
     # Calculate semi-minor axis
-    b = math.sqrt(T1 / (T2 * ((A + B) + T3)))
+    ry = math.sqrt(T1 / (T2 * ((A + B) + T3)))
+    if 1.0 < eccentricity <= 2.0:
+        ry *= 2.0 - eccentricity
     # pylint: enable=invalid-name
-    return Ellipse(center, a, b, major_angle)
+    return Ellipse(center, rx, ry, major_angle)
 
 
 def intersect_circle(

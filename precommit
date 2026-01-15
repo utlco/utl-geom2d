@@ -34,7 +34,7 @@ UCyan='\033[4;36m'
 for cmd in "$BLACK" "$RUFF" "$MYPY" "$PYLINT" "$TYPOS"; do
   if [ "$cmd" ]
   then
-    printf "${UCyan}${cmd%% *}${Reset}\n"
+    printf "${UCyan}${cmd}${Reset}\n"
     $cmd $TARGET
   fi
 done
