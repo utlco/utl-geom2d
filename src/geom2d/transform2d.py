@@ -217,6 +217,23 @@ def create_transform(
     return t1
 
 
+def transform_point(
+    p: Sequence[float],
+    scale: Sequence[float] = (1, 1),
+    offset: Sequence[float] = (0, 0),
+    rotate_angle: float = 0,
+    rotate_origin: Sequence[float] = (0, 0),
+) -> tuple[float, float]:
+    """Apply transforms to point."""
+    m = create_transform(
+        scale=scale,
+        offset=offset,
+        rotate_angle=rotate_angle,
+        rotate_origin=rotate_origin,
+    )
+    return matrix_apply_to_point(m, p)
+
+
 def canonicalize_point(
     p: Sequence[float], origin: Sequence[float], theta: float
 ) -> tuple[float, float]:
