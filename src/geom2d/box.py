@@ -27,8 +27,9 @@ def bounding_box(points: Iterable[TPoint]) -> Box:
 
     :param points: an iterable collection of point 2-tuples (x,y).
     """
-    xmin, ymin = typing.cast("tuple[float, float]", map(min, zip(*points)))
-    xmax, ymax = typing.cast("tuple[float, float]", map(max, zip(*points)))
+    # xmin, ymin = typing.cast("tuple[float, float]", map(min, zip(*points)))
+    # xmax, ymax = typing.cast("tuple[float, float]", map(max, zip(*points)))
+    (xmax, xmin), (ymax, ymin) = ((max(p), min(p)) for p in zip(*points))
     return Box(P(xmin, ymin), P(xmax, ymax))
 
 
@@ -174,13 +175,22 @@ class Box(tuple[P, P]):
             P(self.xmax, self.ymin),
         )
 
-    def point_inside(self, p: TPoint) -> bool:
+    def point_inside(self, p: TPoint, edge_ok: bool = False) -> bool:
         """True if the point is inside this rectangle."""
         return (
-            p[0] > self[0][0]
-            and p[0] < self[1][0]
-            and p[1] > self[0][1]
-            and p[1] < self[1][1]
+            (
+                p[0] >= self[0][0]
+                and p[0] <= self[1][0]
+                and p[1] >= self[0][1]
+                and p[1] <= self[1][1]
+            )
+            if edge_ok
+            else (
+                p[0] > self[0][0]
+                and p[0] < self[1][0]
+                and p[1] > self[0][1]
+                and p[1] < self[1][1]
+            )
         )
 
     def line_inside(self, ln: TLine) -> bool:
