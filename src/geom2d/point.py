@@ -1,6 +1,6 @@
 """Basic 2D point/vector."""
 
-from __future__ import annotations
+from __future__ import annotations  # forward refs
 
 import math
 import random
@@ -20,13 +20,75 @@ if TYPE_CHECKING:
 # at least two floating point values.
 TPoint = Sequence[float]
 
-# Moved to const.py
-# _HASH_PRIME_X = 73856093  # X
-# _HASH_PRIME_Y = 19349663  # Y
-# _HASH_PRIME_Z = 83492791  # Z (unused, but for reference)
-# _HASH_SIZE = 2305843009213693951  # largest Mersenne prime < sys.maxsize
-# See: https://oeis.org/A000043 for list of Marsenne exponents.
-# _HASH_SIZE = 2147483647 # for 32bit python
+
+def hash_xy(x: float, y: float) -> int:
+    """Calculate a spatial hash value for a 2D point.
+
+    Can be used for very basic collision detection.
+    Uses the precision specified by EPSILON to simply round off
+    coordinate values (grid quantization) followed by an integer hash.
+
+    Note:
+        - There are (many) cases where points that share the same hash value
+            are not also ``almost_equal``, due to grid quantization vs distance.
+        - Collisions are much more likely when the distance between points is
+            less than EPSILON * 10.
+
+    See:
+        http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
+    """
+    # TODO: Revisit Rob Jenkins or Thomas Wang's integer hash functions
+    # See:
+    # https://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+    # http://burtleburtle.net/bob/hash/doobs.html
+    # http://burtleburtle.net/bob/c/lookup3.c
+    # http://burtleburtle.net/bob/hash/integer.html
+    #
+    # TODO: Consider Jon Maiga's mx3 v3
+    # https://github.com/jonmaiga/mx3
+    # https://jonkagstrom.com/mx3/
+    # uint64_t mix(uint64_t x) {
+    #    x ^= x >> 32;
+    #    x *= 0xbea225f9eb34556d;
+    #    x ^= x >> 29;
+    #    x *= 0xbea225f9eb34556d;
+    #    x ^= x >> 32;
+    #    x *= 0xbea225f9eb34556d;
+    #    x ^= x >> 29;
+    #    return x;
+    # }
+
+    # REPSILON - reciprocal of EPSILON
+    # Increase tolerance to better match hashes for close points.
+    # This, of course, increases chance of collisions...
+    repsilon: float = const.REPSILON / 10
+
+    # The coordinate values are first rounded down to the current level
+    # of precision (see EPSILON). The intention is that floating point
+    # artifacts/drift and small differences in spatial distance
+    # (spatial jitter) are filtered out.
+    # These are various minor variations that have been tested.
+    # # V1
+    # a = int(round(self[0], const.EPSILON_PRECISION)) * 73856093
+    # b = int(round(self[1], const.EPSILON_PRECISION)) * 83492791
+    # # V2
+    # a = int(round(self[0], const.EPSILON_PRECISION) * _HASH_PRIME_X)
+    # b = int(round(self[1], const.EPSILON_PRECISION) * _HASH_PRIME_Y)
+    # # V3
+    # a: int = round(self[0] * repsilon * const.HASH_PRIME_X)
+    # b: int = round(self[1] * repsilon * const.HASH_PRIME_Y)
+    # # V4
+    a: int = round(x * repsilon) * const.HASH_PRIME_X
+    b: int = round(y * repsilon) * const.HASH_PRIME_Y
+    # # V5
+    # a: int = math.trunc(x * repsilon) * const.HASH_PRIME_X
+    # b: int = math.trunc(y * repsilon) * const.HASH_PRIME_Y
+
+    # Modulo a large prime (Mersenne in this case) that is less than
+    # max signed int.
+    # The intent is to minimize collisions by creating a better
+    # distribution over the long (64 bit) integer range.
+    return (a ^ b) % const.HASH_SIZE
 
 
 def max_xy() -> float:
@@ -62,7 +124,7 @@ def almost_equal(p1: TPoint, p2: TPoint, tolerance: float | None = None) -> bool
         p1: First point. A 2-tuple (x, y).
         p2: Second point. A 2-tuple (x, y).
         tolerance: Max distance between the two points.
-            Default is ``EPSILON``.
+            Default is ``const.EPSILON``.
 
     Returns:
         True if distance between the points < `tolerance`.
@@ -72,7 +134,6 @@ def almost_equal(p1: TPoint, p2: TPoint, tolerance: float | None = None) -> bool
     dx = p1[0] - p2[0]
     dy = p1[1] - p2[1]
     h2 = dx * dx + dy * dy  # Distance squared
-    # return bool(h2 < (h2 * tolerance * tolerance))
     return bool(h2 < (tolerance * tolerance))
 
 
@@ -452,7 +513,8 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
             c: Third point of triangle as 2-tuple (x, y)
 
         Returns:
-            True if this point lies within the triangle ABC.
+            True if this point lies within, or on an edge, or on a vertex,
+            of the triangle ABC.
         """
         ax, ay = a
         bx, by = b
@@ -496,8 +558,8 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
             p3: Third point as 2-tuple (x, y).
 
         Returns:
-            Positive if self->p2->p3 is clockwise (right),
-            negative if counterclockwise (left),
+            Negative if self->p2->p3 is clockwise (right),
+            positive if counterclockwise (left),
             zero if points are colinear.
         """
         w = (p2[0] - self[0]) * (p3[1] - self[1]) - (p3[0] - self[0]) * (
@@ -550,6 +612,10 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         considered equal.
         There may be cases where an exact compare is necessary but for
         most purposes (like collision detection) this works better.
+
+        This only does a cursory check for the type of the
+        other object since this assumes comparisons within
+        a geometric context (i.e. between points).
 
         See:
             almost_equal()
@@ -675,36 +741,17 @@ class P(tuple[float, float]):  # namedtuple('P', 'x, y')):
         Can be used for basic collision detection.
         Uses the precision specified by EPSILON to round off coordinate values.
 
+        Note:
+            There are cases where points that are almost equal do not
+            share the same hash value.
+            Also, this only works for instances of P since the hash
+            value will be different than the hash value
+            for a raw tuple (i.e. hash((1, 2)) != hash(P(1, 2)).
+
         See:
             http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
         """
-        # The coordinate values are first rounded down to the current
-        # level of precision (see EPSILON) so that floating point
-        # artifacts and small differences in spatial distance
-        # (spatial jitter) are filtered out.
-        # This seems to work pretty well in practice.
-        # a = int(round(self[0], const.EPSILON_PRECISION)) * 73856093
-        # b = int(round(self[1], const.EPSILON_PRECISION)) * 83492791
-        # a = int(round(self[0], const.EPSILON_PRECISION) * _HASH_PRIME_X)
-        # b = int(round(self[1], const.EPSILON_PRECISION) * _HASH_PRIME_Y)
-
-        repsilon: float = const.REPSILON
-        # a: int = round(self[0] * repsilon * const.HASH_PRIME_X)
-        # b: int = round(self[1] * repsilon * const.HASH_PRIME_Y)
-        a: int = round(self[0] * repsilon) * const.HASH_PRIME_X
-        b: int = round(self[1] * repsilon) * const.HASH_PRIME_Y
-
-        # Modulo a large prime that is less than max signed int.
-        # The intent is to minimize collisions by creating a better
-        # distribution over the long integer range.
-        return (a ^ b) % const.HASH_SIZE
-
-        # TODO: Revisit Rob Jenkins or Thomas Wang's integer hash functions
-        # See:
-        # https://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
-        # http://burtleburtle.net/bob/hash/doobs.html
-        # http://burtleburtle.net/bob/c/lookup3.c
-        # http://burtleburtle.net/bob/hash/integer.html
+        return hash_xy(self[0], self[1])
 
     mag = None
     normalized = None
