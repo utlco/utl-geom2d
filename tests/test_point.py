@@ -2,13 +2,16 @@
 
 import math
 import sys
+import warnings
 
 import numpy as np
 import pytest
 
-from geom2d import const, point, transform2d
+from geom2d import const, line, point, transform2d
 from geom2d.const import float_eq
-from geom2d.point import P
+from geom2d.point import P, TPoint
+
+# ruff: file-ignore[no-explicit-stacklevel]
 
 P1 = P(60, 40)
 CCW_PT = [
@@ -218,52 +221,66 @@ def test_normal_projection() -> None:
     assert float_eq(projection, 0.0)
 
 
-def test_inside_triangle() -> None:
+# triangle, inside, on_edge, on_vertex, outside
+_TRIANGLES = (
+    ((0.0, 0.0), (10.0, 0.0), (5.0, 10.0)),
+    ((2.2605511, 4.9247722), (4.8440382, 2.2000007), (5.530277, 6.9834885)),
+    ((2.3810714, 3.8914228), (1.454636, 1.0875541), (3.7954127, 7.4871229)),
+)
+
+
+@pytest.mark.parametrize("triangle", _TRIANGLES)
+def test_inside_triangle(triangle: tuple[TPoint, TPoint, TPoint]) -> None:
     """Test inside_triangle method."""
-    # Simple triangle
-    a = P(0.0, 0.0)
-    b = P(10.0, 0.0)
-    c = P(5.0, 10.0)
+    for offset in ((0, 0), (2.5, 3.7), (-5239879.287349, 32765.2983)):
+        for rotation in np.linspace(-math.pi, math.pi, 7):
+            t = [
+                transform2d.transform_point(p, offset=offset, rotate_angle=rotation)
+                for p in triangle
+            ]
+            _do_test_inside_triangle(t)
 
-    # Point inside
-    p = P(5.0, 5.0)
-    assert p.inside_triangle(a, b, c)
-    assert p.inside_triangle(a, c, b)  # CCW
 
-    # Point outside
-    p = P(5.0, 11.0)
-    assert not p.inside_triangle(a, b, c)
-    assert not p.inside_triangle(a, c, b)  # CCW
+def _do_test_inside_triangle(triangle: tuple[TPoint, TPoint, TPoint]) -> None:
+    a, b, c = triangle
 
-    # Point on edge
-    p = P(5.0, 0.0)
-    assert p.inside_triangle(a, b, c)
-    assert p.inside_triangle(a, c, b)  # CCW
+    # Points inside triangle
+    centroid = P(((a[0] + b[0] + c[0]) / 3), ((a[1] + b[1] + c[1]) / 3))
+    on_edge = P(((a[0] + b[0]) / 2), ((a[1] + b[1]) / 2))  # midpoint of A-B
+    on_vert = P(a)
 
-    # Point at vertex
-    p = P(0.0, 0.0)
-    assert p.inside_triangle(a, b, c)
-    assert p.inside_triangle(a, c, b)  # CCW
+    # Outside point (just extend centroid->on_edge)
+    x0, y0 = centroid
+    x1, y1 = on_edge
+    dx, dy = (x1 - x0), (y1 - y0)
+    outside = P((x1 + dx), (y1 + dy))
+
+    for p in (centroid, on_edge, on_vert):
+        assert p.inside_triangle(a, b, c)
+        assert p.inside_triangle(c, b, a)
+
+    assert not outside.inside_triangle(a, b, c)
+    assert not outside.inside_triangle(c, b, a)
+
+
+_WINDINGS = (
+    ((4.7223558, 1.9336246), (1.454636, 1.0875541), (3.7954127, 7.4871229)),
+    ((0.0, 0.0), (5.0, 10.0), (10.0, 0.0)),
+)
 
 
 def test_winding() -> None:
     """Test winding method."""
-    p1 = P(0.0, 0.0)
-    p2 = P(10.0, 0.0)
-    p3 = P(5.0, 10.0)
-
-    # Clockwise winding
-    winding = p1.winding(p2, p3)
-    assert winding > 0
-
-    # Counter-clockwise winding
-    winding = p1.winding(p3, p2)
-    assert winding < 0
-
-    # Collinear points
-    p3 = P(20.0, 0.0)
-    winding = p1.winding(p2, p3)
-    assert float_eq(winding, 0.0)
+    for w in _WINDINGS:
+        p0, p1, p2 = w
+        assert P(p0).winding(p1, p2) < 0  # CW
+        assert P(p0).winding(p2, p1) > 0  # CCW
+        # Colinear (extend p0->p1)
+        x0, y0 = p0
+        x1, y1 = p1
+        dx, dy = (x1 - x0), (y1 - y0)
+        p3 = ((x1 + dx), (y1 + dy))
+        assert float_eq(P(p0).winding(p1, p3), 0)
 
 
 def test_transform_and_rotate() -> None:
@@ -457,18 +474,11 @@ def test_misc() -> None:
     assert p.x == -point.max_xy()
     assert p.y == -point.max_xy()
 
+    epsilon = const.EPSILON
+
     for angle in np.linspace(-math.pi, math.pi, 100):
-        p = P.from_polar(const.EPSILON - sys.float_info.epsilon, angle)
-        p2 = P.random()
-        p3 = p2 + const.EPSILON * max(p2.x, p2.y)
-
-        # test __eq__
-        assert p.is_zero()
-        assert p2 + p == p2
-        assert p2 != p3
-
         # test to/from polar
-        mag = np.random.default_rng().uniform(const.EPSILON, const.MAX_XY)
+        mag = np.random.default_rng().uniform(epsilon, const.MAX_XY)
         p = P.from_polar(mag, angle)
         m, a = p.to_polar()
         assert float_eq(mag, p.length())
@@ -477,10 +487,64 @@ def test_misc() -> None:
         assert float_eq(a, angle)
 
         # test unit length
+        p2 = P.random()
         p2u = p2.unit()
         ulen = p2u.length()
-        assert ulen <= (1.0 + const.EPSILON)
+        assert ulen <= (1.0 + epsilon)
         assert float_eq(ulen * p2.x / p2u.x, p2.length())
+
+
+def test_eq() -> None:
+    """Test point.almost_equal(), P.__eq__()."""
+    epsilon = const.EPSILON
+    epsilon_plus = math.nextafter(epsilon, math.inf)
+    epsilon_minus = math.nextafter(epsilon, -math.inf)
+
+    assert point.almost_equal((0, 0), (epsilon_minus, 0))
+    assert not point.almost_equal((0, 0), (epsilon, 0))
+    assert not point.almost_equal((0, 0), (epsilon_plus, 0))
+    p1 = P(epsilon * 0.5, epsilon * 0.5)
+    p2 = P(epsilon, epsilon)
+    assert p1.is_zero()
+    assert not p2.is_zero()
+    assert p1 == p2
+
+    p0 = P(0, 0)
+    h = epsilon_plus
+    a = math.sqrt((h * h) / 2)
+    p1 = P(a, a)
+    assert not p1.is_zero()
+    assert p1 != p0
+    assert p0 + p1 != p0
+
+    h = epsilon_minus
+    a = math.sqrt((h * h) / 2)
+    p2 = P(a, a)
+    assert p2.is_zero()
+    assert p2 == p0
+    assert p1 == p2
+    assert p0 + p2 == p0
+
+    p3 = P(1, 2)
+
+    # Due to float drift this is too close
+    # assert p3 + p1 != p3
+    a = math.sqrt(epsilon_plus * epsilon_plus / 2) * (1 + (epsilon / 2))
+    assert p3 + P(a, a) != p3
+
+    assert p3 + p2 == p3
+
+    for angle in np.linspace(-math.pi, math.pi, 100):
+        # test __eq__
+        p1 = P.from_polar(epsilon_minus, angle)
+        p2 = P.from_polar(epsilon_plus, angle)
+        assert p1.is_zero()
+        assert not p2.is_zero()
+        assert p1 == p2
+        assert point.almost_equal((0, 0), p1)
+        assert not point.almost_equal((0, 0), p2)
+        assert p0 + p1 == p1
+        assert p1 + epsilon != p1
 
 
 def test_is_ccw() -> None:
@@ -488,9 +552,11 @@ def test_is_ccw() -> None:
     # All points in CCW_PT are CCW (left of) P1
     for p2 in CCW_PT:
         assert P1.is_ccw(p2)
+        assert P(0, 0).winding(P1, p2) > 0
     # All points in CW_PT are CW (right of) P1
     for p2 in CW_PT:
         assert not P1.is_ccw(p2)
+        assert P(0, 0).winding(P1, p2) < 0
 
 
 def test_bisector() -> None:
@@ -533,11 +599,37 @@ def test_bisector() -> None:
 
 
 def test_hash() -> None:
-    """Test point hash for collisions."""
-    # Big coordinate space
-    _test_hash(10000, -const.MAX_XY, const.MAX_XY)
-    # Small coordinate space
-    _test_hash(10000, -1.0, 1.0)
+    """Test point.hash()."""
+    # Collision test - big coordinate space
+    _test_hash(100000, -const.MAX_XY, const.MAX_XY)
+    # Collision test - small coordinate space
+    _test_hash(100000, -1.0, 1.0)
+
+    epsilon = const.EPSILON
+    # p0 rotates around the origin
+    for angle in np.linspace(-math.pi, math.pi, 12):
+        p0 = P.from_polar(5.0, angle)
+        assert hash(p0) == point.hash_xy(p0[0], p0[1])
+        for angle2 in np.linspace(-math.pi, math.pi, 12):
+            # These two points rotate around the primary point p0.
+            # One slightly closer than EPSILON, the other slightly
+            # further than EPSILON.
+            p1 = p0 + P.from_polar(0.5 * epsilon, angle2)
+            p2 = p0 + P.from_polar(0.49 * epsilon, angle2 + math.pi)
+            p3 = p0 + P.from_polar(11 * epsilon, angle2)
+            assert hash(p0) == hash(p1)
+            assert p0 == p1
+            assert p1.distance(p2) < const.EPSILON
+            assert hash(p1) == hash(p2)
+            assert p1 == p2
+            assert hash(p0) != hash(p3)
+            assert p0 != p3
+            assert line.hash_line(p0[0], p0[1], p3[0], p3[1]) == hash(
+                line.Line(p3, p0)
+            )
+            assert line.hash_line(p0[0], p0[1], p3[0], p3[1]) == hash(
+                line.Line(p0, p3)
+            )
 
 
 def _test_hash(max_hashes: int, min_xy: float, max_xy: float) -> None:
@@ -546,19 +638,11 @@ def _test_hash(max_hashes: int, min_xy: float, max_xy: float) -> None:
         P(rng.uniform(min_xy, max_xy), rng.uniform(min_xy, max_xy))
         for n in range(max_hashes)
     }
-    # Test equality for reasonable rando collisions
-    assert (max_hashes - len(points)) < (max_hashes * 0.01)
+    # A hash collision shouldn't really be a test failure since there
+    # is a non-zero (but very unlikely) chance of a collision.
+    collisions = max_hashes - len(points)
+    if collisions > 0:
+        warnings.warn(f"{collisions} hash collisions - try running again.")
 
-    hashes = set()
-    for p in points:
-        h = hash(p)
-        hashes.add(h)
-
+    hashes = {hash(p) for p in points}
     assert len(hashes) == len(points)
-
-    p1 = P(1017.7163859753387, 958.0190453784681)
-    p2 = P(1017.7163859753388, 958.0190453784684)
-    const.set_epsilon(1e-8)
-    h1 = hash(p1)
-    h2 = hash(p2)
-    assert h1 == h2
