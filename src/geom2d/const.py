@@ -59,8 +59,9 @@ float comparisons, and integer conversions.
 """
 
 HASH_PRIME_X = 73856093  # X
-HASH_PRIME_Y = 19349663  # Y
-HASH_PRIME_Z = 83492791  # Z (unused, but for reference)
+HASH_PRIME_Y = 19349669  # Y
+HASH_PRIME_Z = 83492791  # Z
+HASH_PRIME_A = 43463213  # A
 HASH_SIZE = 2305843009213693951  # largest Mersenne prime < sys.maxsize
 # See: https://oeis.org/A000043 for list of Marsenne exponents.
 """Hash constants for hashing integers and vectors/points."""
