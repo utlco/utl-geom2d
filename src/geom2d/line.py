@@ -18,6 +18,33 @@ if TYPE_CHECKING:
 TLine = Sequence[Sequence[float]]  # Generic input type
 
 
+def hash_line(line: TLine | float, *args: float) -> int:
+    """Calculate a hash value for two points.
+
+    Explicitly NOT order sensitive, i.e. hash(p1, p2) == hash(p2, p1),
+    so that equivalent path segments hash the same regardless of direction.
+
+    Useful for sets and maps of path segments etc..
+    """
+    if isinstance(line, float):
+        if not args or len(args) < 3:
+            raise ValueError("Missing line coordinates")
+        x1 = line
+        y1, x2, y2 = args
+    else:
+        (x1, y1), (x2, y2) = line
+
+    # TODO: Research hashing multiple integers.
+    # Perform tests (i.e. PractRand) to verify
+    # distribution/mixing.
+    repsilon: float = const.REPSILON / 10
+    a: int = round(x1 * repsilon) * const.HASH_PRIME_X
+    b: int = round(y1 * repsilon) * const.HASH_PRIME_Y
+    c: int = round(x2 * repsilon) * const.HASH_PRIME_X
+    d: int = round(y2 * repsilon) * const.HASH_PRIME_Y
+    return ((a ^ b) + (c ^ d)) % const.HASH_SIZE
+
+
 # namedtuple('Line', 'p1, p2')):
 class Line(tuple[P, P]):  # ruff: ignore[no-slots-in-tuple-subclass]
     """Two dimensional immutable line segment defined by two points.
@@ -604,7 +631,8 @@ class Line(tuple[P, P]):  # ruff: ignore[no-slots-in-tuple-subclass]
 
         The hash value will be the same if p1 and p2 are reversed.
         """
-        return hash(self.p1) ^ hash(self.p2)
+        # return hash(self.p1) ^ hash(self.p2)
+        return hash_line(self)
 
     def __str__(self) -> str:
         """Concise string representation."""
