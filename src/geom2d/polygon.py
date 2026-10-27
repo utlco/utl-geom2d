@@ -69,11 +69,12 @@ def turn(p: TPoint, q: TPoint, r: TPoint) -> int:
         -1, 0, 1 if p,q,r forms a right (CW), straight, or left (CCW) turn.
     """
     w = (q[0] - p[0]) * (r[1] - p[1]) - (r[0] - p[0]) * (q[1] - p[1])
-    return (w > const.EPSILON) - (w < -const.EPSILON)
-    # or easier to read:
-    # if const.is_zero(a):
+    # if const.is_zero(w):
     #    return 0
-    # return TURN_LEFT if a > const.EPSILON else TURN_RIGHT
+    # elif w > const.EPSILON:
+    #    return TURN_LEFT
+    # return TURN_RIGHT
+    return (w > const.EPSILON) - (w < -const.EPSILON)
 
 
 def convex_hull(points: Iterable[TPoint]) -> list[P]:
