@@ -36,7 +36,7 @@ repository = "https://github.com/utlco/utl-geom2d"
 [tool.pytest.ini_options]
 minversion="6.0"
 addopts = "-ra -q -s"
-testpaths = ["test",]
+testpaths = ["tests",]
 
 [tool.pylint.MAIN]
 extension-pkg-allow-list = ["lxml.etree"]
