@@ -1,7 +1,6 @@
 """Create an approximated superellipse (Lamé curve) using Bezier curves.
 
-Note: This was partly built using ChatGPT/Codex 5.6-Sol-high
-    then significantly cleaned up.
+Note: This was partly built using help from ChatGPT/Codex 5.6-Sol-high, 6.1-Sol
 """
 
 import math
@@ -10,7 +9,6 @@ from operator import itemgetter
 from typing import TypeAlias
 
 from . import TPoint
-from .polygon import rect_midpoints
 
 _HALF_PI = math.pi / 2.0
 _EPSILON = 1.0e-9
@@ -66,7 +64,8 @@ def rhombus_superellipse(
         num_curves: Total number of Bezier segments. Must be a multiple of 4.
             The default is 16.
         scale: Scale superellipse.
-        gap: Endpoint gap.
+        gap: Distance between adjacent quadrant endpoints, along rhombus
+            edges when using midpoint endpoints.
         use_vertice_endpoints: Use vertices as quadrant curve endpoints
             instead of midpoints.
         fit_inside: Constrain convex superellipse within rhombus when
@@ -87,17 +86,6 @@ def rhombus_superellipse(
     # Clamp K to reasonable limits.
     k = max(min(k, _MAX_K), _MIN_K)
 
-    # This would be a simple diamond of four straight line Beziers
-    # connected at rhombus edge midpoints.
-    if _is_zero(k):  # n == 1.0
-        p0, p1, p2, p3 = points if use_vertice_endpoints else rect_midpoints(points)
-        return [
-            (p0, p0, p1, p1),
-            (p1, p1, p2, p2),
-            (p2, p2, p3, p3),
-            (p3, p3, p0, p0),
-        ]
-
     # Lamé equation exponent.
     # See: https://en.wikipedia.org/wiki/Superellipse
     n = 2.0**k
@@ -109,7 +97,7 @@ def rhombus_superellipse(
     step = _HALF_PI / curves_per_quadrant
 
     # Create normalized curves for one quadrant
-    for i in range(curves_per_quadrant):
+    for i in range(0 if _is_zero(k) else curves_per_quadrant):
         theta = i * step
         p0 = _lame_point(theta, n)
         p1 = _lame_point(theta + step, n)
@@ -123,8 +111,6 @@ def rhombus_superellipse(
         0.25 * sum(x for x, _y in points),
         0.25 * sum(y for _x, y in points),
     )
-
-    # TODO: add transform for endpoint gap
 
     # Create transform vectors to skew curves to fit rhombus
     if use_vertice_endpoints:
@@ -145,6 +131,10 @@ def rhombus_superellipse(
         vx = 0.5 * (points[0][0] - points[3][0])
         vy = 0.5 * (points[0][1] - points[3][1])
 
+    # Convert half the drawing-unit gap to each normalized affine axis.
+    gap_u = gap / (2.0 * math.hypot(ux, uy)) if gap else 0.0
+    gap_v = gap / (2.0 * math.hypot(vx, vy)) if gap else 0.0
+
     # Affine map from normalized square to rhombus
     def _transform(point: TPoint, quadrant: int) -> TPoint:
         x, y = point
@@ -155,13 +145,26 @@ def rhombus_superellipse(
             x, y = -x, -y
         elif quadrant == 3:
             x, y = y, -x
-        x *= scale
-        y *= scale
+        # Inset each quadrant toward its corner. Axis endpoints remain on
+        # their edges, with half the gap on either side of each seam.
+        sign_x = 1.0 if quadrant in (0, 3) else -1.0
+        sign_y = 1.0 if quadrant in (0, 1) else -1.0
+        x = x * scale + gap_u * (sign_x - x)
+        y = y * scale + gap_v * (sign_y - y)
         # Affine transform to rhombus
         return (
             cx + x * ux + y * vx,
             cy + x * uy + y * vy,
         )
+
+    if _is_zero(k):
+        # Preserve the straight-line cubic representation for the diamond.
+        diamond: list[TCubicBezier] = []
+        for quadrant in range(4):
+            p0 = _transform((1.0, 0.0), quadrant)
+            p1 = _transform((0.0, 1.0), quadrant)
+            diamond.append((p0, p0, p1, p1))
+        return diamond
 
     cubic_curves: list[TCubicBezier] = []
 
@@ -234,9 +237,10 @@ def _tangent_intersection(p0: TPoint, t0: TPoint, p1: TPoint, t1: TPoint) -> TPo
         return a[0] * b[1] - a[1] * b[0]
 
     denominator = _cross(t0, t1)
-    delta = (p1[0] - p0[0], p1[1] - p0[1])
+    if _is_zero(denominator): # Tangents parallel, just use midpoint...
+        return 0.5 * (p0[0] + p1[0]), 0.5 * (p0[1] + p1[1])
 
-    assert not _is_zero(denominator)  # can't happen, already checked for n == 1
+    delta = (p1[0] - p0[0], p1[1] - p0[1])
     s = _cross(delta, t1) / denominator
 
     return (
