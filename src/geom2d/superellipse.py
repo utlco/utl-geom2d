@@ -44,6 +44,7 @@ def rhombus_superellipse(
     k: float,
     num_curves: int = 16,
     scale: float = 1.0,
+    gap: float = 0.0,
     use_vertice_endpoints: bool = False,
     fit_inside: bool = True,
     use_lame_max: bool = False,
@@ -65,12 +66,13 @@ def rhombus_superellipse(
         num_curves: Total number of Bezier segments. Must be a multiple of 4.
             The default is 16.
         scale: Scale superellipse.
+        gap: Endpoint gap.
         use_vertice_endpoints: Use vertices as quadrant curve endpoints
             instead of midpoints.
         fit_inside: Constrain convex superellipse within rhombus when
             `use_vertice_endpoints` is True.
         use_lame_max: Use Lamé curve maximum for fitting if True,
-            otherwise use Bezier curve maximum. Default is False (Bezier).
+            otherwise use Bezier curve maximum. Default is False (use Bezier).
 
     Returns:
         List of (P0, C1, C2, P1) Cubic Bezier segments.
@@ -85,18 +87,15 @@ def rhombus_superellipse(
     # Clamp K to reasonable limits.
     k = max(min(k, _MAX_K), _MIN_K)
 
-    # This would be a simple rectangle of four straight line Beziers
+    # This would be a simple diamond of four straight line Beziers
     # connected at rhombus edge midpoints.
-    if _is_zero(k):
-        if use_vertice_endpoints:
-            p1, p2, p3, p4 = points
-        else:
-            p1, p2, p3, p4 = rect_midpoints(points)
+    if _is_zero(k):  # n == 1.0
+        p0, p1, p2, p3 = points if use_vertice_endpoints else rect_midpoints(points)
         return [
+            (p0, p0, p1, p1),
             (p1, p1, p2, p2),
             (p2, p2, p3, p3),
-            (p3, p3, p4, p4),
-            (p4, p4, p1, p1),
+            (p3, p3, p0, p0),
         ]
 
     # Lamé equation exponent.
@@ -119,34 +118,35 @@ def rhombus_superellipse(
         q = _tangent_intersection(p0, t0, p1, t1)
         base_curves.append((p0, q, p1))
 
-    # ------------------------------------------------------------
-    # Affine map from normalized square to rhombus
-    # ------------------------------------------------------------
-
-    center = (
+    # Rhombus center
+    cx, cy = (
         0.25 * sum(x for x, _y in points),
         0.25 * sum(y for _x, y in points),
     )
 
+    # TODO: add transform for endpoint gap
+
+    # Create transform vectors to skew curves to fit rhombus
     if use_vertice_endpoints:
         if n > 1 and fit_inside:
-            scale = (
+            # Scale endpoint overshoot to fit inside rhombus
+            scale *= (
                 _fit_scale_lame(n)
                 if use_lame_max
                 else _fit_scale_bezier(base_curves)[0]
             )
-        ux = points[0][0] - center[0]
-        uy = points[0][1] - center[1]
-        vx = points[1][0] - center[0]
-        vy = points[1][1] - center[1]
-    else:
-        # Use midpoints
+        ux = points[0][0] - cx
+        uy = points[0][1] - cy
+        vx = points[1][0] - cx
+        vy = points[1][1] - cy
+    else:  # Use midpoints
         ux = 0.5 * (points[0][0] - points[1][0])
         uy = 0.5 * (points[0][1] - points[1][1])
         vx = 0.5 * (points[0][0] - points[3][0])
         vy = 0.5 * (points[0][1] - points[3][1])
 
-    def transform(point: TPoint, quadrant: int) -> TPoint:
+    # Affine map from normalized square to rhombus
+    def _transform(point: TPoint, quadrant: int) -> TPoint:
         x, y = point
         # Rotate normalized point to quadrant
         if quadrant == 1:
@@ -159,18 +159,19 @@ def rhombus_superellipse(
         y *= scale
         # Affine transform to rhombus
         return (
-            center[0] + x * ux + y * vx,
-            center[1] + x * uy + y * vy,
+            cx + x * ux + y * vx,
+            cy + x * uy + y * vy,
         )
 
     cubic_curves: list[TCubicBezier] = []
 
+    # Create transformed curves for each quadrant
     for quadrant in range(4):
         for curve in base_curves:
             p0, q, p1 = curve
-            p0 = transform(p0, quadrant)
-            q = transform(q, quadrant)
-            p1 = transform(p1, quadrant)
+            p0 = _transform(p0, quadrant)
+            q = _transform(q, quadrant)
+            p1 = _transform(p1, quadrant)
             cubic_curves.append(_quadratic_to_cubic(p0, q, p1))
 
     return cubic_curves
@@ -190,7 +191,7 @@ def _quadratic_to_cubic(p0: TPoint, q: TPoint, p1: TPoint) -> TCubicBezier:
 
 
 def _lame_point(theta: float, n: float) -> TPoint:
-    """First-quadrant Lamé curve."""
+    """Quadrant Lamé curve endpoint at `theta`."""
     # Clamp to axes
     if _is_zero(theta):
         return (1.0, 0.0)
@@ -216,26 +217,14 @@ def _lame_tangent(point: TPoint, n: float) -> TPoint:
     #     T = (-y^(n-1), x^(n-1))
     #
     x, y = point
-    assert x > -_EPSILON
-    assert y > -_EPSILON
+
+    # Check for vertical/horizontal tangents
     if _is_zero(y):
-        if n > 1.0:
-            # Convex curve: vertical tangent.
-            return (0.0, 1.0)
-        # Concave curve: horizontal tangent toward center.
-        return (-1.0, 0.0)
-
+        return (0.0, 1.0) if n > 1.0 else (-1.0, 0.0)
     if _is_zero(x):
-        if n > 1.0:
-            # Convex curve: horizontal tangent.
-            return (-1.0, 0.0)
-        # Concave curve: vertical tangent.
-        return (0.0, 1.0)
+        return (-1.0, 0.0) if n > 1.0 else (0.0, 1.0)
 
-    return (
-        -(y ** (n - 1.0)),
-        x ** (n - 1.0),
-    )
+    return -(y ** (n - 1.0)), x ** (n - 1.0)
 
 
 def _tangent_intersection(p0: TPoint, t0: TPoint, p1: TPoint, t1: TPoint) -> TPoint:
@@ -245,15 +234,11 @@ def _tangent_intersection(p0: TPoint, t0: TPoint, p1: TPoint, t1: TPoint) -> TPo
         return a[0] * b[1] - a[1] * b[0]
 
     denominator = _cross(t0, t1)
-    if _is_zero(denominator):  # n == 1, shouldn't happen
-        raise AssertionError("Degenerate curve.")
-        # return (
-        #    0.5 * (p0[0] + p1[0]),
-        #    0.5 * (p0[1] + p1[1]),
-        # )
-
     delta = (p1[0] - p0[0], p1[1] - p0[1])
+
+    assert not _is_zero(denominator)  # can't happen, already checked for n == 1
     s = _cross(delta, t1) / denominator
+
     return (
         p0[0] + s * t0[0],
         p0[1] + s * t0[1],
